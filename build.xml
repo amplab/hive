@@ -124,6 +124,18 @@
     </sequential>
   </macrodef>
 
+  <macrodef name="iterate-test-subset">
+    <attribute name="target"/>
+    <attribute name="filelist"/>
+    <sequential>
+      <subant target="@{target}">
+        <property name="thrift.home" value="${thrift.home}"/>
+        <property name="build.dir.hive" location="${build.dir.hive}"/>
+        <filelist dir="." files="@{filelist}"/>
+      </subant>
+    </sequential>
+  </macrodef>
+
   <macrodef name="iterate-thriftif">
     <attribute name="target"/>
     <sequential>
@@ -306,6 +318,14 @@
           description="Build Java test artifacts">
     <echo message="Project: ${ant.project.name}"/>
     <iterate-test target="compile-test"/>
+  </target>
+
+  <target name="hive-exec-test-jar" depends="jar"
+          description="Build Java test artifacts for QL">
+    <echo message="Project: ${ant.project.name}"/>
+    <iterate-test-subset filelist="ql/build.xml" target="gen-test"/>
+    <iterate-test-subset filelist="ql/build.xml" target="compile-test"/>
+    <iterate-test-subset filelist="ql/build.xml" target="test-jar"/>
   </target>
 
   <target name="test" depends="clean-test,jar-test" description="Run tests">
