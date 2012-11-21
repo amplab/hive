@@ -1,0 +1,8 @@
+Package: hive-bin
+Version: [[version]]
+Section: misc
+Priority: extra
+Architecture: all
+Description: Apache Hive binary distribution, exactly the same as the tarball
+Distribution: development
+Maintainer: user@hive.apache.org

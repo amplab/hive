@@ -21,8 +21,12 @@ package org.apache.hadoop.hive.jdbc;
 import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.SQLFeatureNotSupportedException;
+import java.util.logging.Logger;
 
 import javax.sql.DataSource;
+
+import java.util.logging.Logger;
 
 /**
  * HiveDataSource.
@@ -90,6 +94,12 @@ public class HiveDataSource implements DataSource {
    * @see javax.sql.CommonDataSource#setLogWriter(java.io.PrintWriter)
    */
 
+  public Logger getParentLogger() throws SQLFeatureNotSupportedException {
+    // JDK 1.7
+    throw new SQLFeatureNotSupportedException("Method not supported");
+  }
+
+
   public void setLogWriter(PrintWriter arg0) throws SQLException {
     // TODO Auto-generated method stub
     throw new SQLException("Method not supported");
@@ -129,3 +139,4 @@ public class HiveDataSource implements DataSource {
   }
 
 }
+
