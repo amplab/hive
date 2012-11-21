@@ -237,27 +237,27 @@
     </jar>
     <ivy:makepom ivyfile="ivy.xml"
         pomfile="${build.dir}/hive-exec-test-${version}.pom">
-       <mapping conf="default" scope="compile"/>
-       <mapping conf="compile" scope="compile"/>
-       <mapping conf="test" scope="test"/>
-     </ivy:makepom>
-     <!-- Add HBase as a test dependency (needed for mini ZK cluster). -->
-     <exec executable="${basedir}/../bin/build/add_dependency_to_pom.py" >
-       <arg value="${build.dir}/hive-exec-test-${version}.pom" />
-       <arg value="org.apache.hbase" />
-       <arg value="hbase" />
-       <arg value="${hbase.version}" />
-       <arg value="test" />
-     </exec>
-     <exec executable="mvn">
-       <arg value="install:install-file" />
-       <arg value="-Dfile=${build.dir}/hive-exec-test-${version}.jar" />
-       <arg value="-DpomFile=${build.dir}/hive-exec-test-${version}.pom" />
-       <arg value="-DgroupId=org.apache.hive" />
-       <arg value="-DartifactId=hive-exec-test" />
-       <arg value="-Dversion=${version}" />
-       <arg value="-Dpackaging=jar" />
-     </exec>
+      <mapping conf="default" scope="compile"/>
+      <mapping conf="compile" scope="compile"/>
+      <mapping conf="test" scope="test"/>
+    </ivy:makepom>
+    <!-- Add HBase as a test dependency (needed for mini ZK cluster). -->
+    <exec executable="${basedir}/../bin/build/add_dependency_to_pom.py" >
+      <arg value="${build.dir}/hive-exec-test-${version}.pom" />
+      <arg value="org.apache.hbase" />
+      <arg value="hbase" />
+      <arg value="${hbase.version}" />
+      <arg value="test" />
+    </exec>
+    <exec executable="mvn">
+      <arg value="install:install-file" />
+      <arg value="-Dfile=${build.dir}/hive-exec-test-${version}.jar" />
+      <arg value="-DpomFile=${build.dir}/hive-exec-test-${version}.pom" />
+      <arg value="-DgroupId=org.apache.hive" />
+      <arg value="-DartifactId=hive-exec-test" />
+      <arg value="-Dversion=${version}" />
+      <arg value="-Dpackaging=jar" />
+    </exec>
   </target>
 
   <!-- Override deploy since we are deploying hive_exec and not hive_ql -->

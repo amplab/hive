@@ -16,6 +16,7 @@ f = open(fileName)
 lines = [l for l in f]
 f.close()
 
+added_dependency = False
 f = open(fileName, "wt")
 for l in lines:
   l = l.rstrip()
@@ -29,9 +30,14 @@ for l in lines:
       <scope>%s</scope>
     </dependency>
 """ % (groupId, artifactId, version, scope)
+    added_dependency = True
   print >> f, l
 
 f.close()
+
+if not added_dependency:
+  print >> sys.stderr, "Failed to add dependency to %s" % fileName
+  sys.exit(1)
 
 print "Added dependency to %s: %s:%s:%s:%s" % (fileName, groupId, artifactId,
     version, scope)
