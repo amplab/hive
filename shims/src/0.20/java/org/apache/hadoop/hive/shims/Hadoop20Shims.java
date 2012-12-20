@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
+import org.apache.hadoop.fs.Trash;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.apache.hadoop.hive.io.HiveIOExceptionHandlerUtil;
 import org.apache.hadoop.io.Text;
@@ -51,6 +54,7 @@ import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.TaskAttemptContext;
 import org.apache.hadoop.mapred.TaskCompletionEvent;
 import org.apache.hadoop.mapred.TaskID;
+import org.apache.hadoop.mapred.TaskLogServlet;
 import org.apache.hadoop.mapred.lib.CombineFileInputFormat;
 import org.apache.hadoop.mapred.lib.CombineFileSplit;
 import org.apache.hadoop.mapreduce.Job;
@@ -526,6 +530,17 @@ public class Hadoop20Shims implements HadoopShims {
   }
 
   @Override
+  public String getTaskAttemptLogUrl(JobConf conf,
+    String taskTrackerHttpAddress, String taskAttemptId)
+    throws MalformedURLException {
+    URL taskTrackerHttpURL = new URL(taskTrackerHttpAddress);
+    return TaskLogServlet.getTaskLogUrl(
+      taskTrackerHttpURL.getHost(),
+      Integer.toString(taskTrackerHttpURL.getPort()),
+      taskAttemptId);
+  }
+
+  @Override
   public JobTrackerState getJobTrackerState(ClusterStatus clusterStatus) throws Exception {
     JobTrackerState state;
     switch (clusterStatus.getJobTrackerState()) {
@@ -575,8 +590,31 @@ public class Hadoop20Shims implements HadoopShims {
   }
 
   @Override
+  public long getDefaultBlockSize(FileSystem fs, Path path) {
+    return fs.getDefaultBlockSize();
+  }
+
+  @Override
+  public short getDefaultReplication(FileSystem fs, Path path) {
+    return fs.getDefaultReplication();
+  }
+
+  @Override
   public void closeAllForUGI(UserGroupInformation ugi) {
     // No such functionality in ancient hadoop
     return;
+  }
+
+  @Override
+  public boolean moveToAppropriateTrash(FileSystem fs, Path path, Configuration conf)
+          throws IOException {
+    // older versions of Hadoop don't have a Trash constructor based on the
+    // Path or FileSystem. So need to achieve this by creating a dummy conf.
+    // this needs to be filtered out based on version
+
+    Configuration dupConf = new Configuration(conf);
+    FileSystem.setDefaultUri(dupConf, fs.getUri());
+    Trash trash = new Trash(dupConf);
+    return trash.moveToTrash(path);
   }
 }

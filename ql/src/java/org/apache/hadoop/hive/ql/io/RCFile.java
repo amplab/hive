@@ -41,6 +41,7 @@ import org.apache.hadoop.hive.serde2.ColumnProjectionUtils;
 import org.apache.hadoop.hive.serde2.columnar.BytesRefArrayWritable;
 import org.apache.hadoop.hive.serde2.columnar.BytesRefWritable;
 import org.apache.hadoop.hive.serde2.columnar.LazyDecompressionCallback;
+import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.SequenceFile.Metadata;
@@ -527,7 +528,11 @@ public class RCFile {
       }
       if (codec != null) {
         IOUtils.closeStream(decompressBuffer);
-        CodecPool.returnDecompressor(valDecompressor);
+        if (valDecompressor != null) {
+          // Make sure we only return valDecompressor once.
+          CodecPool.returnDecompressor(valDecompressor);
+          valDecompressor = null;
+        }
       }
     }
 
@@ -721,7 +726,8 @@ public class RCFile {
     public Writer(FileSystem fs, Configuration conf, Path name,
         Progressable progress, Metadata metadata, CompressionCodec codec) throws IOException {
       this(fs, conf, name, fs.getConf().getInt("io.file.buffer.size", 4096),
-          fs.getDefaultReplication(), fs.getDefaultBlockSize(), progress,
+              ShimLoader.getHadoopShims().getDefaultReplication(fs, name),
+              ShimLoader.getHadoopShims().getDefaultBlockSize(fs, name), progress,
           metadata, codec);
     }
 
@@ -1746,7 +1752,11 @@ public class RCFile {
       currentValue.close();
       if (decompress) {
         IOUtils.closeStream(keyDecompressedData);
-        CodecPool.returnDecompressor(keyDecompressor);
+        if (keyDecompressor != null) {
+          // Make sure we only return keyDecompressor once.
+          CodecPool.returnDecompressor(keyDecompressor);
+          keyDecompressor = null;
+        }
       }
     }
 

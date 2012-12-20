@@ -29,6 +29,7 @@
     <conf name="checkstyle" visibility="private"/>
     <conf name="rat" visibility="private"/>
     <conf name="maven" visibility="private"/>
+    <conf name="deb" visibility="private"/>
   </configurations>
 
 
@@ -43,7 +44,8 @@
      conf="docs->default"/>
    <dependency org="org.apache.maven" name="maven-ant-tasks" rev="${maven-ant-tasks.version}"
      conf="maven->default"/>
+   <dependency org="org.vafer" name="jdeb" rev="${jdeb.version}" conf="deb->default" />
    <conflict manager="all" />
   </dependencies>
-  
+
 </ivy-module>

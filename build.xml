@@ -58,6 +58,11 @@
   <property name="rat.build.dir" location="${build.dir.hive}/rat"/>
   <property name="md5sum.format" value="{0}  {1}"/>
 
+  <property name="deb.control.dir" location="${hive.root}/deb"/>
+  <property name="deb.build.dir" location="${hive.root}/build"/>
+  <property name="deb.control.build.dir" location="${deb.build.dir}/deb"/>
+  <property name="deb.prefix" value="/usr/share/hive"/>
+
   <!-- Ignore Postgres upgrade scripts unless 'include.postgres' is true -->
   <condition property="metastore.excludes"
              value="${vcs.excludes}" else="${vcs.excludes},**/postgres/**">
@@ -320,12 +325,27 @@
     <iterate-test target="compile-test"/>
   </target>
 
-  <target name="hive-exec-test-jar" depends="jar"
+  <target name="hive-exec-test-jar" depends="jar,mvn-taskdef"
           description="Build Java test artifacts for QL">
     <echo message="Project: ${ant.project.name}"/>
     <iterate-test-subset filelist="ql/build.xml" target="gen-test"/>
     <iterate-test-subset filelist="ql/build.xml" target="compile-test"/>
     <iterate-test-subset filelist="ql/build.xml" target="test-jar"/>
+    <if>
+      <isset property="mvn.publish.repoUrl" />
+      <then>
+        <artifact:mvn>
+          <arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
+          <arg value="-Durl=${mvn.publish.repoUrl}" />
+          <arg value="-DrepositoryId=${mvn.publish.repo}" />
+          <arg value="-Dfile=${build.dir.hive}/ql/hive-exec-test-${version}.jar" />
+          <arg value="-DpomFile=${build.dir.hive}/ql/hive-exec-test-${version}.pom" />
+          <arg value="-DgroupId=org.apache.hive" />
+          <arg value="-DartifactId=hive-exec-test" />
+          <arg value="-Dpackaging=jar" />
+        </artifact:mvn>
+      </then>
+    </if>
   </target>
 
   <target name="test" depends="clean-test,jar-test" description="Run tests">
@@ -678,7 +698,8 @@
     <antcall target="docs-anakia"/>
   </target>
 
-  <target name="javadoc" depends="package" description="Generate Javadoc">
+  <target name="javadoc" depends="package" description="Generate Javadoc"
+      unless="skip.javadoc">
     <echo message="Project: ${ant.project.name}"/>
     <mkdir dir="${build.javadoc}"/>
     <javadoc
@@ -799,6 +820,42 @@
     </macro_tar>
   </target>
 
+  <!-- ================================================================== -->
+  <!-- Debian packaging                                                   -->
+  <!-- ================================================================== -->
+
+  <target name="ivy-resolve-deb" depends="ivy-init-settings">
+    <echo message="Project: ${ant.project.name}"/>
+    <ivy:resolve settingsRef="${ant.project.name}.ivy.settings" conf="deb"
+                 log="${ivyresolvelog}"/>
+  </target>
+
+  <target name="ivy-retrieve-deb" depends="ivy-resolve-deb"
+    description="Retrieve Ivy-managed artifacts for Debian packaging">
+    <echo message="Project: ${ant.project.name}"/>
+    <ivy:retrieve settingsRef="${ant.project.name}.ivy.settings"
+      pattern="${build.ivy.lib.dir}/${ivy.artifact.retrieve.pattern}"
+      log="${ivyresolvelog}"/>
+    <ivy:cachepath pathid="deb-classpath" conf="deb"/>
+  </target>
+
+  <target name="deb" depends="binary,ivy-resolve-deb,ivy-retrieve-deb">
+    <copy todir="${deb.control.build.dir}">
+      <fileset dir="${deb.control.dir}"/>
+      <filterset begintoken="[[" endtoken="]]">
+        <filter token="version" value="${version}"/>
+      </filterset>
+    </copy>
+    <taskdef name="deb" classname="org.vafer.jdeb.ant.DebAntTask">
+      <classpath refid="deb-classpath"/>
+    </taskdef>
+    <deb destfile="${deb.build.dir}/${name}-bin_${version}_all.deb"
+        control="${deb.control.build.dir}">
+      <data src="${build.dir.hive}/${bin.final.name}.tar.gz" type="archive">
+        <mapper type="perm" strip="1" prefix="${deb.prefix}"/>
+      </data>
+    </deb>
+  </target>
 
   <!-- ================================================================== -->
   <!-- RAT                                                                -->
@@ -1115,6 +1172,19 @@
               file="${mvn.jar.dir}/hive-${hive.project}-${version}.jar">
             <pom refid="hive.project.pom" />
           </artifact:install>
+        </then>
+      </elseif>
+      <elseif>
+        <isset property="mvn.publish.repoUrl"/>
+        <then>
+          <echo message="Deploying to ${mvn.publish.repo}, ${mvn.publish.repoUrl}"/>
+          <artifact:mvn>
+            <arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
+            <arg value="-Durl=${mvn.publish.repoUrl}" />
+            <arg value="-DrepositoryId=${mvn.publish.repo}" />
+            <arg value="-DpomFile=${mvn.pom.dir}/hive-${hive.project}-${version}.pom" />
+            <arg value="-Dfile=${mvn.jar.dir}/hive-${hive.project}-${version}.jar" />
+          </artifact:mvn>
         </then>
       </elseif>
       <else>
