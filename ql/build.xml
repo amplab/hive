@@ -219,7 +219,7 @@
                  artifactspattern="${build.dir}/${ivy.publish.pattern}"/>
   </target>
 
-  <target name="test-jar" depends="jar,gen-test">
+  <target name="hive-exec-test-jar" depends="jar,gen-test">
     <!-- Added to package test code for Shark project testing -->
     <jar jarfile="${build.dir}/hive-exec-test-${version}.jar">
       <fileset dir="${build.dir.hive}/common/test/classes" includes="**/*.class"/>
