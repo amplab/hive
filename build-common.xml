@@ -277,6 +277,23 @@
                  artifactspattern="${build.dir}/${ivy.publish.pattern}"/>
   </target>
 
+  <target name="source-jar">
+    <echo message="Project: ${ant.project.name}" />
+    <jar
+      jarfile="${build.dir}/hive-${ant.project.name}-${version}-sources.jar"
+      basedir="${src.dir}"
+      includes="**/*.java">
+      <manifest>
+        <!-- Not putting these in their own manifest section, since that inserts
+             a new-line, which breaks the reading of the attributes. -->
+        <attribute name="Implementation-Title" value="Hive"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Implementation-Vendor" value="Apache"/>
+      </manifest>
+      <metainf dir="${hive.root}" includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>
+
   <!-- target to compile tests -->
   <target name="compile-test" depends="compile,ivy-retrieve-test">
     <echo message="Project: ${ant.project.name}"/>

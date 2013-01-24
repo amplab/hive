@@ -99,7 +99,22 @@ to call at top-level: ant deploy-contrib compile-core-test
       </sequential>
     </for>  	
   </target>
-  
+
+  <target name="source-jar">
+    <echo message="Project: ${ant.project.name}" />
+    <jar jarfile="${build.dir}/hive-${ant.project.name}-${version}-sources.jar">
+      <fileset dir="${shims.common.sources}" includes="**/*.java" />
+      <manifest>
+        <!-- Not putting these in their own manifest section, since that inserts
+             a new-line, which breaks the reading of the attributes. -->
+        <attribute name="Implementation-Title" value="Hive"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Implementation-Vendor" value="Apache"/>
+      </manifest>
+      <metainf dir="${hive.root}" includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>
+
   <target name="compile-test-worker"
           description="worker to compile tests, takes worker.test.src.dir parameter">
     <echo message="Project: ${ant.project.name}"/>

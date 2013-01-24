@@ -219,6 +219,24 @@
                  artifactspattern="${build.dir}/${ivy.publish.pattern}"/>
   </target>
 
+  <target name="source-jar">
+    <jar jarfile="${build.dir}/hive-exec-${version}-sources.jar">
+      <fileset dir="${basedir}/../common/src/java" includes="**/*.java"/>
+      <fileset dir="${basedir}/../ql/src/java" includes="**/*.java"/>
+      <fileset dir="${basedir}/../serde/src/java" includes="**/*.java"/>
+      <fileset dir="${basedir}/../shims/src/common/java" includes="**/*.java"/>
+      <fileset dir="${basedir}/../shims/src/common-secure/java" includes="**/*.java"/>
+      <manifest>
+        <!-- Not putting these in their own manifest section, since that inserts
+             a new-line, which breaks the reading of the attributes. -->
+        <attribute name="Implementation-Title" value="Hive"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Implementation-Vendor" value="Apache"/>
+      </manifest>
+      <metainf dir="${hive.root}" includes="LICENSE,NOTICE"/>
+    </jar>
+  </target>
+
   <target name="hive-exec-test-jar" depends="jar,gen-test">
     <!-- Added to package test code for Shark project testing -->
     <jar jarfile="${build.dir}/hive-exec-test-${version}.jar">
@@ -226,6 +244,21 @@
       <fileset dir="${build.dir.hive}/ql/test/classes" includes="**/*.class,**/*.properties"/>
       <fileset dir="${build.dir.hive}/serde/test/classes" includes="**/*.class"/>
       <fileset dir="${build.dir.hive}/shims/test/classes" includes="**/*.class"/>
+      <manifest>
+        <!-- Not putting these in their own manifest section, since that inserts
+             a new-line, which breaks the reading of the attributes. -->
+        <attribute name="Implementation-Title" value="Hive"/>
+        <attribute name="Implementation-Version" value="${version}"/>
+        <attribute name="Implementation-Vendor" value="Apache"/>
+      </manifest>
+      <metainf dir="${hive.root}" includes="LICENSE,NOTICE"/>
+    </jar>
+    <jar jarfile="${build.dir}/hive-exec-test-${version}-sources.jar">
+      <fileset dir="${build.dir.hive}/ql/test/src" includes="**/*.java"/>
+      <fileset dir="${basedir}/../common/src/test" includes="**/*.java"/>
+      <fileset dir="${basedir}/../ql/src/test" includes="**/*.java"/>
+      <fileset dir="${basedir}/../serde/src/test" includes="**/*.java"/>
+      <fileset dir="${basedir}/../shims/src/test" includes="**/*.java"/>
       <manifest>
         <!-- Not putting these in their own manifest section, since that inserts
              a new-line, which breaks the reading of the attributes. -->

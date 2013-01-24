@@ -49,4 +49,12 @@ to call at top-level: ant deploy-contrib compile-core-test
       <fileset dir="${build.dir}/classes"/>
     </jar>
   </target>
+
+  <target name="source-jar" depends="compile">
+    <echo message="${ant.project.name}"/>
+    <jar destfile="${build.dir}/hive-anttasks-${version}-sources.jar" includes="**/*.java">
+      <fileset dir="${src.dir}"/>
+    </jar>
+  </target>
+
 </project>
