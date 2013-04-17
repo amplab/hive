@@ -42,6 +42,8 @@
         includes="**/*.java"
         destdir="${build.classes}"
         debug="${javac.debug}"
+        target="${javac.version}"
+        source="${javac.version}"
         deprecation="${javac.deprecation}"
         includeantruntime="false"
         >

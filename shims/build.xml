@@ -77,6 +77,8 @@ to call at top-level: ant deploy-contrib compile-core-test
      includes="**/*.java"
      destdir="${build.classes}"
      debug="${javac.debug}"
+     target="${javac.version}"
+     source="${javac.version}"
      deprecation="${javac.deprecation}"
      srcdir="${sources}"
      includeantruntime="false">

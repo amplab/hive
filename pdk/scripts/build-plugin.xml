@@ -64,6 +64,8 @@
        srcdir="${src.dir}"
        includes="**/*.java"
        includeantruntime="false"
+       target="${javac.version}"
+       source="${javac.version}"
        destdir="${build.classes}">
       <classpath refid="plugin.classpath"/>
     </javac>

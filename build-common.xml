@@ -249,6 +249,8 @@
      destdir="${build.classes}"
      debug="${javac.debug}"
      deprecation="${javac.deprecation}"
+     target="${javac.version}"
+     source="${javac.version}"
      includeantruntime="false">
       <compilerarg line="${javac.args} ${javac.args.warnings}" />
       <classpath refid="classpath"/>

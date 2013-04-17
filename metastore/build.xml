@@ -59,6 +59,8 @@
      includes="**/*.java"
      destdir="${build.classes}"
      debug="${javac.debug}"
+     target="${javac.version}"
+     source="${javac.version}"
      deprecation="${javac.deprecation}"
      includeantruntime="false">
       <classpath refid="classpath"/>
@@ -75,6 +77,8 @@
         srcdir="${model.dir}"
         destdir="${build.classes}"
         debug="${javac.debug}"
+        target="${javac.version}"
+        source="${javac.version}"
         includeantruntime="false">
        <classpath refid="classpath"/>
     </javac>

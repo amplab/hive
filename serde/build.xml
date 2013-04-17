@@ -44,6 +44,8 @@
      srcdir="${src.dir}/java/:${src.dir}/gen/thrift/gen-javabean/:${src.dir}/gen/protobuf/gen-java/"
      destdir="${build.classes}"
      debug="${javac.debug}"
+     target="${javac.version}"
+     source="${javac.version}"
      deprecation="${javac.deprecation}"
      includeantruntime="false">
       <compilerarg line="${javac.args} ${javac.args.warnings}" />
