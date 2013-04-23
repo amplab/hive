@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.hive.shims;
 
-import java.lang.IllegalArgumentException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,9 +60,13 @@ public abstract class ShimLoader {
    * Factory method to get an instance of HadoopShims based on the
    * version of Hadoop on the classpath.
    */
-  public static synchronized HadoopShims getHadoopShims() {
+  public static HadoopShims getHadoopShims() {
     if (hadoopShims == null) {
-      hadoopShims = loadShims(HADOOP_SHIM_CLASSES, HadoopShims.class);
+      synchronized(ShimLoader.class) {
+        if (hadoopShims == null) {
+          hadoopShims = loadShims(HADOOP_SHIM_CLASSES, HadoopShims.class);
+        }
+      }
     }
     return hadoopShims;
   }
@@ -72,9 +75,13 @@ public abstract class ShimLoader {
    * Factory method to get an instance of JettyShims based on the version
    * of Hadoop on the classpath.
    */
-  public static synchronized JettyShims getJettyShims() {
+  public static JettyShims getJettyShims() {
     if (jettyShims == null) {
-      jettyShims = loadShims(JETTY_SHIM_CLASSES, JettyShims.class);
+      synchronized(ShimLoader.class) {
+        if (jettyShims == null) {
+          jettyShims = loadShims(JETTY_SHIM_CLASSES, JettyShims.class);
+        }
+      }
     }
     return jettyShims;
   }
