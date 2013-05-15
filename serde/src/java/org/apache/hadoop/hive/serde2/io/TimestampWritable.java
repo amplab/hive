@@ -190,7 +190,7 @@ public class TimestampWritable implements WritableComparable<TimestampWritable> 
    */
   int getTotalLength() {
     checkBytes();
-    return getTotalLength(currentBytes, 0);
+    return getTotalLength(currentBytes, offset);
   }
 
   public static int getTotalLength(byte[] bytes, int offset) {
@@ -244,13 +244,13 @@ public class TimestampWritable implements WritableComparable<TimestampWritable> 
   /**
    * Given a byte[] that has binary sortable data, initialize the internal
    * structures to hold that data
-   * @param bytes
-   * @param offset
+   * @param bytes the byte array that holds the binary sortable representation
+   * @param binSortOffset offset of the binary-sortable representation within the buffer.
    */
-  public void setBinarySortable(byte[] bytes, int offset) {
+  public void setBinarySortable(byte[] bytes, int binSortOffset) {
     // Flip the sign bit (and unused bits of the high-order byte) of the seven-byte long back.
-    long seconds = readSevenByteLong(bytes, offset) ^ SEVEN_BYTE_LONG_SIGN_FLIP;
-    int nanos = bytesToInt(bytes, offset+7);
+    long seconds = readSevenByteLong(bytes, binSortOffset) ^ SEVEN_BYTE_LONG_SIGN_FLIP;
+    int nanos = bytesToInt(bytes, binSortOffset + 7);
     int firstInt = (int) seconds;
     boolean hasSecondVInt = seconds < 0 || seconds > Integer.MAX_VALUE;
     if (nanos != 0 || hasSecondVInt) {
@@ -263,7 +263,7 @@ public class TimestampWritable implements WritableComparable<TimestampWritable> 
     setNanosBytes(nanos, internalBytes, 4, hasSecondVInt);
     if (hasSecondVInt) {
       LazyBinaryUtils.writeVLongToByteArray(internalBytes,
-          offset + 4 + WritableUtils.decodeVIntSize(internalBytes[offset + 4]),
+          4 + WritableUtils.decodeVIntSize(internalBytes[4]),
           seconds >> 31);
     }
 
@@ -420,7 +420,7 @@ public class TimestampWritable implements WritableComparable<TimestampWritable> 
     // bytes. The higher-order bits come from the second VInt that follows the nanos field.
     return ((long) (lowest31BitsOfSecondsAndFlag & LOWEST_31_BITS_OF_SEC_MASK)) |
            (LazyBinaryUtils.readVLongFromByteArray(bytes,
-               offset + 4 +   WritableUtils.decodeVIntSize(bytes[offset + 4])) << 31);
+               offset + 4 + WritableUtils.decodeVIntSize(bytes[offset + 4])) << 31);
   }
 
   public static int getNanos(byte[] bytes, int offset) {

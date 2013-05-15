@@ -82,10 +82,11 @@ public class TestTimestampWritable extends TestCase {
     return timestampStr;
   }
 
-  private static void assertEqualsNormalized(TimestampWritable expected,
-                                             TimestampWritable actual) {
+  private static void assertTSWEquals(TimestampWritable expected, TimestampWritable actual) {
     assertEquals(normalizeTimestampStr(expected.toString()),
                  normalizeTimestampStr(actual.toString()));
+    assertEquals(expected, actual);
+    assertEquals(expected.getTimestamp(), actual.getTimestamp());
   }
 
   private static TimestampWritable deserializeFromBytes(byte[] tsBytes) throws IOException {
@@ -134,6 +135,20 @@ public class TestTimestampWritable extends TestCase {
     return list;
   }
 
+  /**
+   * Pad the given byte array with the given number of bytes in the beginning. The padding bytes
+   * deterministically depend on the passed data.
+   */
+  private static byte[] padBytes(byte[] bytes, int count) {
+    byte[] result = new byte[bytes.length + count];
+    for (int i = 0; i < count; ++i) {
+      // Fill the prefix bytes with deterministic data based on the actual meaningful data.
+      result[i] = (byte) (bytes[i % bytes.length] * 37 + 19);
+    }
+    System.arraycopy(bytes, 0, result, count, bytes.length);
+    return result;
+  }
+
   private static TimestampWritable serializeDeserializeAndCheckTimestamp(Timestamp ts)
       throws IOException {
     TimestampWritable tsw = new TimestampWritable(ts);
@@ -141,32 +156,16 @@ public class TestTimestampWritable extends TestCase {
 
     byte[] tsBytes = serializeToBytes(tsw);
     TimestampWritable deserTSW = deserializeFromBytes(tsBytes);
-    if (!normalizeTimestampStr(tsw.toString()).equals(normalizeTimestampStr(deserTSW.toString()))) {
-      // Repeat the same procedure to reproduce the failure for easy debugging.
-      tsw = new TimestampWritable(ts);  // create a brand-new writable without cached bytes
-      tsBytes = serializeToBytes(tsw);
-      deserTSW = deserializeFromBytes(tsBytes);
-      deserTSW.toString();
-    }
-    assertEqualsNormalized(tsw, deserTSW);
+    assertTSWEquals(tsw, deserTSW);
     assertEquals(ts, deserTSW.getTimestamp());
     assertEquals(tsBytes.length, tsw.getTotalLength());
 
     // Also convert to/from binary-sortable representation.
-    byte[] binarySortableBytes = tsw.getBinarySortable();
+    int binarySortableOffset = Math.abs(tsw.hashCode()) % 10;
+    byte[] binarySortableBytes = padBytes(tsw.getBinarySortable(), binarySortableOffset);
     TimestampWritable fromBinSort = new TimestampWritable();
-    fromBinSort.setBinarySortable(binarySortableBytes, 0);
-
-    if (!normalizeTimestampStr(tsw.toString()).equals(
-         normalizeTimestampStr(fromBinSort.toString()))) {
-      // For easier debugging.
-      tsw = new TimestampWritable(ts);
-      binarySortableBytes = tsw.getBinarySortable();
-      fromBinSort = new TimestampWritable();
-      fromBinSort.setBinarySortable(binarySortableBytes, 0);
-      fromBinSort.toString();
-    }
-    assertEqualsNormalized(tsw, fromBinSort);
+    fromBinSort.setBinarySortable(binarySortableBytes, binarySortableOffset);
+    assertTSWEquals(tsw, fromBinSort);
 
     long timeSeconds = ts.getTime() / 1000;
     if (0 <= timeSeconds && timeSeconds <= Integer.MAX_VALUE) {
@@ -182,33 +181,36 @@ public class TestTimestampWritable extends TestCase {
     assertEquals(ts.getNanos(), tsw.getNanos());
     assertEquals(getSeconds(ts), tsw.getSeconds());
 
-    // Test various set methods.
+    // Test various set methods and copy constructors.
     {
       TimestampWritable tsSet1 = new TimestampWritable();
       // make the offset non-zero to keep things interesting.
       int offset = Math.abs(ts.hashCode() % 32);
-      byte[] shiftedBytes = new byte[offset + tsBytes.length];
-      System.arraycopy(tsBytes, 0, shiftedBytes, offset, tsBytes.length);
+      byte[] shiftedBytes = padBytes(tsBytes, offset);
       tsSet1.set(shiftedBytes, offset);
-      assertEqualsNormalized(tsw, tsSet1);
+      assertTSWEquals(tsw, tsSet1);
+
+      TimestampWritable tswShiftedBytes = new TimestampWritable(shiftedBytes, offset);
+      assertTSWEquals(tsw, tswShiftedBytes);
+      assertTSWEquals(tsw, deserializeFromBytes(serializeToBytes(tswShiftedBytes)));
     }
 
     {
       TimestampWritable tsSet2 = new TimestampWritable();
       tsSet2.set(ts);
-      assertEqualsNormalized(tsw, tsSet2);
+      assertTSWEquals(tsw, tsSet2);
     }
 
     {
       TimestampWritable tsSet3 = new TimestampWritable();
       tsSet3.set(tsw);
-      assertEqualsNormalized(tsw, tsSet3);
+      assertTSWEquals(tsw, tsSet3);
     }
 
     {
       TimestampWritable tsSet4 = new TimestampWritable();
       tsSet4.set(deserTSW);
-      assertEqualsNormalized(tsw, tsSet4);
+      assertTSWEquals(tsw, tsSet4);
     }
 
     double expectedDbl = getSeconds(ts) + 1e-9d * ts.getNanos();
