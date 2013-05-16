@@ -36,6 +36,7 @@ import org.apache.hadoop.hive.serde2.SerDeStats;
 import org.apache.hadoop.hive.serde2.io.ByteWritable;
 import org.apache.hadoop.hive.serde2.io.DoubleWritable;
 import org.apache.hadoop.hive.serde2.io.ShortWritable;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.MapObjectInspector;
@@ -54,6 +55,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.IntObjectInspecto
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.LongObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.ShortObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.StringObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.DateObjectInspector;
 import org.apache.hadoop.hive.serde2.objectinspector.primitive.TimestampObjectInspector;
 import org.apache.hadoop.hive.serde2.typeinfo.ListTypeInfo;
 import org.apache.hadoop.hive.serde2.typeinfo.MapTypeInfo;
@@ -360,6 +362,17 @@ public class BinarySortableSerDe implements SerDe {
         return bw;
       }
 
+      case DATE: {
+        DateWritable d = reuse == null ? new DateWritable()
+            : (DateWritable) reuse;
+        long v = buffer.read(invert) ^ 0x80;
+        for (int i = 0; i < 7; i++) {
+          v = (v << 8) + (buffer.read(invert) & 0xff);
+        }
+        d.set(DateWritable.timeToDate(v));
+        return d;
+      }
+
       case TIMESTAMP:
         TimestampWritable t = (reuse == null ? new TimestampWritable() :
             (TimestampWritable) reuse);
@@ -597,6 +610,19 @@ public class BinarySortableSerDe implements SerDe {
         byte[] toSer = new byte[ba.getLength()];
         System.arraycopy(ba.getBytes(), 0, toSer, 0, ba.getLength());
         serializeBytes(buffer, toSer, ba.getLength(), invert);
+        return;
+      }
+      case  DATE: {
+        DateObjectInspector doi = (DateObjectInspector) poi;
+        long v = doi.getPrimitiveWritableObject(o).getTimeInSeconds();
+        buffer.write((byte) ((v >> 56) ^ 0x80), invert);
+        buffer.write((byte) (v >> 48), invert);
+        buffer.write((byte) (v >> 40), invert);
+        buffer.write((byte) (v >> 32), invert);
+        buffer.write((byte) (v >> 24), invert);
+        buffer.write((byte) (v >> 16), invert);
+        buffer.write((byte) (v >> 8), invert);
+        buffer.write((byte) v, invert);
         return;
       }
       case TIMESTAMP: {

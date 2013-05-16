@@ -496,6 +496,8 @@ public final class TypeCheckProcFactory {
           Constants.STRING_TYPE_NAME);
       conversionFunctionTextHashMap.put(HiveParser.TOK_BINARY,
           Constants.BINARY_TYPE_NAME);
+      conversionFunctionTextHashMap.put(HiveParser.TOK_DATE,
+          Constants.DATE_TYPE_NAME);
       conversionFunctionTextHashMap.put(HiveParser.TOK_TIMESTAMP,
           Constants.TIMESTAMP_TYPE_NAME);
     }

@@ -1,0 +1,127 @@
+PREHOOK: query: drop table date_3
+PREHOOK: type: DROPTABLE
+POSTHOOK: query: drop table date_3
+POSTHOOK: type: DROPTABLE
+PREHOOK: query: create table date_3 (d date)
+PREHOOK: type: CREATETABLE
+POSTHOOK: query: create table date_3 (d date)
+POSTHOOK: type: CREATETABLE
+POSTHOOK: Output: default@date_3
+PREHOOK: query: alter table date_3 set serde 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+PREHOOK: type: ALTERTABLE_SERIALIZER
+PREHOOK: Input: default@date_3
+PREHOOK: Output: default@date_3
+POSTHOOK: query: alter table date_3 set serde 'org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe'
+POSTHOOK: type: ALTERTABLE_SERIALIZER
+POSTHOOK: Input: default@date_3
+POSTHOOK: Output: default@date_3
+PREHOOK: query: insert overwrite table date_3 
+  select cast(cast('1.3041352164485E9' as double) as date) from src limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@src
+PREHOOK: Output: default@date_3
+POSTHOOK: query: insert overwrite table date_3 
+  select cast(cast('1.3041352164485E9' as double) as date) from src limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@src
+POSTHOOK: Output: default@date_3
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+PREHOOK: query: select cast(d as boolean) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as boolean) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+true
+PREHOOK: query: select cast(d as tinyint) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as tinyint) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+-16
+PREHOOK: query: select cast(d as smallint) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as smallint) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+25072
+PREHOOK: query: select cast(d as int) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as int) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+1304060400
+PREHOOK: query: select cast(d as bigint) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as bigint) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+1304060400
+PREHOOK: query: select cast(d as float) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as float) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+1.30406042E9
+PREHOOK: query: select cast(d as double) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as double) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+1.3040604E9
+PREHOOK: query: select cast(d as string) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as string) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+2011-04-29
+PREHOOK: query: select cast(d as timestamp) from date_3 limit 1
+PREHOOK: type: QUERY
+PREHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: query: select cast(d as timestamp) from date_3 limit 1
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@date_3
+#### A masked pattern was here ####
+POSTHOOK: Lineage: date_3.d EXPRESSION []
+2011-04-29 00:00:00
+PREHOOK: query: drop table date_3
+PREHOOK: type: DROPTABLE
+PREHOOK: Input: default@date_3
+PREHOOK: Output: default@date_3
+POSTHOOK: query: drop table date_3
+POSTHOOK: type: DROPTABLE
+POSTHOOK: Input: default@date_3
+POSTHOOK: Output: default@date_3
+POSTHOOK: Lineage: date_3.d EXPRESSION []

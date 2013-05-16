@@ -22,6 +22,7 @@ import org.apache.hadoop.hive.ql.exec.UDF;
 import org.apache.hadoop.hive.serde2.io.ByteWritable;
 import org.apache.hadoop.hive.serde2.io.DoubleWritable;
 import org.apache.hadoop.hive.serde2.io.ShortWritable;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.hive.serde2.lazy.LazyLong;
 import org.apache.hadoop.io.BooleanWritable;
@@ -180,6 +181,15 @@ public class UDFToLong extends UDF {
         // But we decided to return NULL instead, which is more conservative.
         return null;
       }
+    }
+  }
+
+  public LongWritable evaluate(DateWritable d) {
+    if (d == null) {
+      return null;
+    } else {
+      longWritable.set(d.getTimeInSeconds());
+      return longWritable;
     }
   }
 

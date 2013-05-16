@@ -92,6 +92,7 @@ public class GenericUDAFPercentileApprox extends AbstractGenericUDAFResolver {
     case LONG:
     case FLOAT:
     case DOUBLE:
+    case DATE:
     case TIMESTAMP:
       break;
     default:
@@ -163,6 +164,7 @@ public class GenericUDAFPercentileApprox extends AbstractGenericUDAFResolver {
       case SHORT:
       case INT:
       case LONG:
+      case DATE:
       case TIMESTAMP:
         break;
       default:

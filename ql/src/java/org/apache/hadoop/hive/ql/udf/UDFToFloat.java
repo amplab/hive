@@ -22,6 +22,7 @@ import org.apache.hadoop.hive.ql.exec.UDF;
 import org.apache.hadoop.hive.serde2.io.ByteWritable;
 import org.apache.hadoop.hive.serde2.io.DoubleWritable;
 import org.apache.hadoop.hive.serde2.io.ShortWritable;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.io.BooleanWritable;
 import org.apache.hadoop.io.FloatWritable;
@@ -166,6 +167,15 @@ public class UDFToFloat extends UDF {
         // But we decided to return NULL instead, which is more conservative.
         return null;
       }
+    }
+  }
+
+  public FloatWritable evaluate(DateWritable d) {
+    if (d == null) {
+      return null;
+    } else {
+      floatWritable.set((float) d.getTimeInSeconds());
+      return floatWritable;
     }
   }
 

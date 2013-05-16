@@ -21,6 +21,7 @@ package org.apache.hadoop.hive.serde2.objectinspector.primitive;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +30,7 @@ import org.apache.hadoop.hive.serde.Constants;
 import org.apache.hadoop.hive.serde2.io.ByteWritable;
 import org.apache.hadoop.hive.serde2.io.DoubleWritable;
 import org.apache.hadoop.hive.serde2.io.ShortWritable;
+import org.apache.hadoop.hive.serde2.io.DateWritable;
 import org.apache.hadoop.hive.serde2.io.TimestampWritable;
 import org.apache.hadoop.hive.serde2.lazy.ByteArrayRef;
 import org.apache.hadoop.hive.serde2.lazy.LazyInteger;
@@ -176,6 +178,9 @@ public final class PrimitiveObjectInspectorUtils {
   public static final PrimitiveTypeEntry shortTypeEntry = new PrimitiveTypeEntry(
       PrimitiveCategory.SHORT, Constants.SMALLINT_TYPE_NAME, Short.TYPE,
       Short.class, ShortWritable.class);
+  public static final PrimitiveTypeEntry dateTypeEntry = new PrimitiveTypeEntry(
+      PrimitiveCategory.DATE, Constants.DATE_TYPE_NAME, null,
+      Object.class, DateWritable.class);
   public static final PrimitiveTypeEntry timestampTypeEntry = new PrimitiveTypeEntry(
       PrimitiveCategory.TIMESTAMP, Constants.TIMESTAMP_TYPE_NAME, null,
       Object.class, TimestampWritable.class);
@@ -195,6 +200,7 @@ public final class PrimitiveObjectInspectorUtils {
     registerType(doubleTypeEntry);
     registerType(byteTypeEntry);
     registerType(shortTypeEntry);
+    registerType(dateTypeEntry);
     registerType(timestampTypeEntry);
     registerType(unknownTypeEntry);
   }
@@ -355,6 +361,10 @@ public final class PrimitiveObjectInspectorUtils {
           .getPrimitiveWritableObject(o2);
       return t1.equals(t2);
     }
+    case DATE: {
+      return ((DateObjectInspector) oi1).getPrimitiveWritableObject(o1)
+          .equals(((DateObjectInspector) oi2).getPrimitiveWritableObject(o2));
+    }
     case TIMESTAMP: {
       return ((TimestampObjectInspector) oi1).getPrimitiveWritableObject(o1)
           .equals(((TimestampObjectInspector) oi2).getPrimitiveWritableObject(o2));
@@ -389,6 +399,8 @@ public final class PrimitiveObjectInspectorUtils {
       return ((DoubleObjectInspector) oi).get(o);
     case STRING:
       return Double.valueOf(((StringObjectInspector) oi).getPrimitiveJavaObject(o));
+    case DATE:
+      return ((DateObjectInspector) oi).getPrimitiveWritableObject(o).getTimeInSeconds();
     case TIMESTAMP:
       return ((TimestampObjectInspector) oi).getPrimitiveWritableObject(o)
           .getDouble();
@@ -461,6 +473,10 @@ public final class PrimitiveObjectInspectorUtils {
         String s = soi.getPrimitiveJavaObject(o);
         result = s.length() != 0;
       }
+      break;
+    case DATE:
+      result = (((DateObjectInspector) oi)
+          .getPrimitiveWritableObject(o).getTimeInSeconds() != 0);
       break;
     case TIMESTAMP:
       result = (((TimestampObjectInspector) oi)
@@ -542,6 +558,10 @@ public final class PrimitiveObjectInspectorUtils {
       }
       break;
     }
+    case DATE:
+      result = (int) (((DateObjectInspector) oi)
+          .getPrimitiveWritableObject(o).getTimeInSeconds());
+      break;
     case TIMESTAMP:
       result = (int) (((TimestampObjectInspector) oi)
           .getPrimitiveWritableObject(o).getSeconds());
@@ -596,6 +616,10 @@ public final class PrimitiveObjectInspectorUtils {
         result = Long.parseLong(s);
       }
       break;
+    case DATE:
+      result = ((DateObjectInspector) oi).getPrimitiveWritableObject(o)
+          .getTimeInSeconds();
+      break;
     case TIMESTAMP:
       result = ((TimestampObjectInspector) oi).getPrimitiveWritableObject(o)
           .getSeconds();
@@ -643,6 +667,9 @@ public final class PrimitiveObjectInspectorUtils {
       StringObjectInspector soi = (StringObjectInspector) oi;
       String s = soi.getPrimitiveJavaObject(o);
       result = Double.parseDouble(s);
+      break;
+    case DATE:
+      result = ((DateObjectInspector) oi).getPrimitiveWritableObject(o).getTimeInSeconds();
       break;
     case TIMESTAMP:
       result = ((TimestampObjectInspector) oi).getPrimitiveWritableObject(o).getDouble();
@@ -704,6 +731,9 @@ public final class PrimitiveObjectInspectorUtils {
       StringObjectInspector soi = (StringObjectInspector) oi;
       result = soi.getPrimitiveJavaObject(o);
       break;
+    case DATE:
+      result = ((DateObjectInspector) oi).getPrimitiveWritableObject(o).toString();
+      break;
     case TIMESTAMP:
       result = ((TimestampObjectInspector) oi).getPrimitiveWritableObject(o).toString();
       break;
@@ -738,6 +768,68 @@ public final class PrimitiveObjectInspectorUtils {
       throw new RuntimeException("Cannot convert to Binary from: "
           + oi.getTypeName());
     }
+  }
+
+  public static Date getDate(Object o, PrimitiveObjectInspector oi) {
+    if (o == null) {
+      return null;
+    }
+
+    Date result = null;
+    switch (oi.getPrimitiveCategory()) {
+    case VOID:
+      result = null;
+      break;
+    case BOOLEAN:
+      result = DateWritable.timeToDate((((BooleanObjectInspector) oi).get(o))? 1 : 0);
+      break;
+    case BYTE:
+      result = DateWritable.timeToDate(((ByteObjectInspector) oi).get(o));
+      break;
+    case SHORT:
+      result = DateWritable.timeToDate(((ShortObjectInspector) oi).get(o));
+      break;
+    case INT:
+      result = DateWritable.timeToDate(((IntObjectInspector) oi).get(o));
+      break;
+    case LONG:
+      result = DateWritable.timeToDate(((LongObjectInspector) oi).get(o));
+      break;
+    case FLOAT:
+      result = DateWritable.timeToDate((long)((FloatObjectInspector) oi).get(o));
+      break;
+    case DOUBLE:
+      result = DateWritable.timeToDate((long)((DoubleObjectInspector) oi).get(o));
+      break;
+    case STRING:
+      StringObjectInspector soi = (StringObjectInspector) oi;
+      String s = soi.getPrimitiveJavaObject(o).trim();
+      try {
+        result = Date.valueOf(s);
+      } catch (IllegalArgumentException e) {
+        result = null;
+      }
+      break;
+    case DATE:
+      result = ((DateObjectInspector) oi).getPrimitiveWritableObject(o).get();
+      break;
+    case TIMESTAMP:
+      result = DateWritable.timeToDate(((TimestampObjectInspector) oi).getPrimitiveWritableObject(o).getSeconds());
+      break;
+    case BINARY:
+      throw new RuntimeException("Cannot convert to Date from: "
+        + oi.getTypeName());
+    default:
+      throw new RuntimeException("Hive 2 Internal error: unknown type: "
+          + oi.getTypeName());
+    }
+/*
+    if (result != null) {
+      // Drop time components in a Date
+      result = new Date(result.getYear(), result.getMonth(), result.getDate());
+    }
+*/
+    return result;
   }
 
   public static Timestamp getTimestamp(Object o, PrimitiveObjectInspector oi) {
@@ -787,6 +879,9 @@ public final class PrimitiveObjectInspectorUtils {
       } catch (IllegalArgumentException e) {
         result = null;
       }
+      break;
+    case DATE:
+      result = new Timestamp(((DateObjectInspector) oi).getPrimitiveWritableObject(o).get().getTime());
       break;
     case TIMESTAMP:
       result = ((TimestampObjectInspector) oi).getPrimitiveWritableObject(o).getTimestamp();

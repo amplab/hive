@@ -194,6 +194,7 @@ import org.apache.hadoop.hive.ql.udf.generic.GenericUDFSize;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDFSplit;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDFStringToMap;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDFStruct;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDFToDate;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDFTimestamp;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDFToBinary;
 import org.apache.hadoop.hive.ql.udf.generic.GenericUDFToUtcTimestamp;
@@ -393,6 +394,8 @@ public final class FunctionRegistry {
     registerUDF(Constants.STRING_TYPE_NAME, UDFToString.class, false,
         UDFToString.class.getSimpleName());
 
+    registerGenericUDF(Constants.DATE_TYPE_NAME,
+        GenericUDFToDate.class);
     registerGenericUDF(Constants.TIMESTAMP_TYPE_NAME,
         GenericUDFTimestamp.class);
     registerGenericUDF(Constants.BINARY_TYPE_NAME,
@@ -711,6 +714,11 @@ public final class FunctionRegistry {
     }
     // Void can be converted to any type
     if (from.equals(TypeInfoFactory.voidTypeInfo)) {
+      return true;
+    }
+
+    if (from.equals(TypeInfoFactory.dateTypeInfo)
+        && to.equals(TypeInfoFactory.stringTypeInfo)) {
       return true;
     }
 
