@@ -34,7 +34,6 @@ import java.util.TimeZone;
 
 import junit.framework.TestCase;
 
-import org.apache.hadoop.hive.common.type.HiveDecimal;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.io.WritableUtils;
 
@@ -315,15 +314,14 @@ public class TestTimestampWritable extends TestCase {
         // decimalToTimestamp should be consistent with doubleToTimestamp for this level of
         // precision.
         assertEquals(ts, TimestampWritable.decimalToTimestamp(
-            new HiveDecimal(BigDecimal.valueOf(asDouble))));
+            BigDecimal.valueOf(asDouble)));
       }
     }
   }
 
-  private static HiveDecimal timestampToDecimal(Timestamp ts) {
+  private static BigDecimal timestampToDecimal(Timestamp ts) {
     BigDecimal d = new BigDecimal(getSeconds(ts));
-    d = d.add(new BigDecimal(ts.getNanos()).divide(new BigDecimal(BILLION)));
-    return new HiveDecimal(d);
+    return d.add(new BigDecimal(ts.getNanos()).divide(new BigDecimal(BILLION)));
   }
 
   public void testDecimalToTimestampRandomly() {
@@ -341,9 +339,9 @@ public class TestTimestampWritable extends TestCase {
     assertEquals(0, ts.getTime() % 1000);
     for (int nanos : new int[] { 100000, 900000, 999100000, 999900000 }) {
       ts.setNanos(nanos);
-      HiveDecimal d = timestampToDecimal(ts);
+      BigDecimal d = timestampToDecimal(ts);
       assertEquals(ts, TimestampWritable.decimalToTimestamp(d));
-      assertEquals(ts, TimestampWritable.doubleToTimestamp(d.bigDecimalValue().doubleValue()));
+      assertEquals(ts, TimestampWritable.doubleToTimestamp(d.doubleValue()));
     }
   }
 
