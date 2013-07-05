@@ -27,7 +27,7 @@ import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectIn
 /**
  * There are limited number of Primitive Types. All Primitive Types are defined
  * by TypeInfoFactory.isPrimitiveClass().
- * 
+ *
  * Always use the TypeInfoFactory to create new TypeInfo objects, instead of
  * directly creating an instance of this class.
  */
@@ -81,12 +81,17 @@ public final class PrimitiveTypeInfo extends TypeInfo implements Serializable {
   }
 
   /**
-   * Compare if 2 TypeInfos are the same. We use TypeInfoFactory to cache
-   * TypeInfos, so we only need to compare the Object pointer.
+   * Compare its typeName
    */
   @Override
   public boolean equals(Object other) {
-    return this == other;
+    if (this == other) {
+      return true;
+    } else if (other != null && other instanceof PrimitiveTypeInfo) {
+      return ((PrimitiveTypeInfo)other).typeName.equals(typeName);
+    } else {
+      return false;
+    }
   }
 
   /**
