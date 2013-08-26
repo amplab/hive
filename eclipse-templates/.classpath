@@ -18,25 +18,27 @@
 --> 
 <classpath>
   <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-  <classpathentry kind="lib" path="build/hadoopcore/hadoop-@HADOOPVER@/hadoop-@HADOOPVER@-core.jar"/>
-  <classpathentry kind="lib" path="build/hadoopcore/hadoop-@HADOOPVER@/hadoop-@HADOOPVER@-test.jar"/>
-  <classpathentry kind="lib" path="build/hadoopcore/hadoop-@HADOOPVER@/hadoop-@HADOOPVER@-tools.jar"/>
-  <classpathentry kind="lib" path="build/hadoopcore/hadoop-@HADOOPVER@/lib/@SERVLETAPIJAR@"/>
-  <classpathentry kind="lib" path="build/hadoopcore/hadoop-@HADOOPVER@/lib/@JETTYJAR@"/>
-  <classpathentry kind="lib" path="build/hadoopcore/hadoop-@HADOOPVER@/lib/@JETTYUTILJAR@"/>
+  <classpathentry kind="lib" path="build/ivy/lib/hadoop@HADOOPVERPREF@.shim/hadoop-core-@HADOOPVER@.jar"/>
+  <classpathentry kind="lib" path="build/ivy/lib/hadoop@HADOOPVERPREF@.shim/hadoop-test-@HADOOPVER@.jar"/>
+  <classpathentry kind="lib" path="build/ivy/lib/hadoop@HADOOPVERPREF@.shim/hadoop-tools-@HADOOPVER@.jar"/>
+  <classpathentry kind="lib" path="build/ivy/lib/hadoop@HADOOPVERPREF@.shim/@SERVLETAPIJAR@"/>
+  <classpathentry kind="lib" path="build/ivy/lib/hadoop@HADOOPVERPREF@.shim/@JETTYJAR@"/>
+  <classpathentry kind="lib" path="build/ivy/lib/hadoop@HADOOPVERPREF@.shim/@JETTYUTILJAR@"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/jline-@jline.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/json-@json.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/asm-@asm.version@.jar"/>
-  <classpathentry kind="lib" path="build/hadoopcore/hadoop-@HADOOPVER@/lib/commons-codec-@commons-codec.version@.jar"/>
+  <classpathentry kind="lib" path="build/ivy/lib/default/commons-codec-@commons-codec.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/commons-lang-@commons-lang.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/commons-logging-@commons-logging.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/commons-logging-api-@commons-logging-api.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/derby-@derby.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/guava-@guava-hadoop20.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/hbase-@hbase.version@.jar"/>
-  <classpathentry kind="lib" path="build/ivy/lib/default/hbase-@hbase-test.version@-tests.jar"/>
+  <classpathentry kind="lib" path="build/ivy/lib/default/hbase-@hbase.version@-tests.jar"/>
+  <classpathentry kind="lib" path="build/ivy/lib/default/jackson-core-asl-@jackson.version@.jar"/>
+  <classpathentry kind="lib" path="build/ivy/lib/default/jackson-mapper-asl-@jackson.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/libfb303-@libfb303.version@.jar"/>
-  <classpathentry kind="lib" path="build/hadoopcore/libthrift-@libthrift.version@.jar"/>
+  <classpathentry kind="lib" path="build/ivy/lib/default/libthrift-@libthrift.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/zookeeper-@zookeeper.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/log4j-@log4j.version@.jar"/>
   <classpathentry kind="lib" path="build/ivy/lib/default/antlr-@antlr.version@.jar"/>
