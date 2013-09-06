@@ -1,0 +1,11 @@
+DROP TABLE corr_tab;
+CREATE TABLE corr_tab (a INT, b INT)
+CLUSTERED BY (b) INTO 16 BUCKETS
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE;
+LOAD DATA LOCAL INPATH '../data/files/corr_tab.txt' OVERWRITE
+INTO TABLE corr_tab;
+
+SELECT round(corr(a, a), 8), b FROM corr_tab GROUP BY b ORDER BY b;
+
+DROP TABLE corr_tab;

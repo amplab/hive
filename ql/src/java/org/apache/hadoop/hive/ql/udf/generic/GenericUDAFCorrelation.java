@@ -283,15 +283,15 @@ public class GenericUDAFCorrelation extends AbstractGenericUDAFResolver {
         StdAgg myagg = (StdAgg) agg;
         double vx = PrimitiveObjectInspectorUtils.getDouble(px, xInputOI);
         double vy = PrimitiveObjectInspectorUtils.getDouble(py, yInputOI);
-        double xavgOld = myagg.xavg;
-        double yavgOld = myagg.yavg;
+        double deltaX = vx - myagg.xavg;
+        double deltaY = vy - myagg.yavg;
         myagg.count++;
-        myagg.xavg += (vx - xavgOld) / myagg.count;
-        myagg.yavg += (vy - yavgOld) / myagg.count;
+        myagg.xavg += deltaX / ((double) myagg.count);
+        myagg.yavg += deltaY / ((double) myagg.count);
         if (myagg.count > 1) {
-            myagg.covar += (vx - xavgOld) * (vy - myagg.yavg);
-            myagg.xvar += (vx - xavgOld) * (vx - myagg.xavg);
-            myagg.yvar += (vy - yavgOld) * (vy - myagg.yavg);
+            myagg.covar += deltaX * (vy - myagg.yavg);
+            myagg.xvar += deltaX * (vx - myagg.xavg);
+            myagg.yvar += deltaY * (vy - myagg.yavg);
         }
       }
     }
@@ -344,12 +344,15 @@ public class GenericUDAFCorrelation extends AbstractGenericUDAFResolver {
           double covarB = covarFieldOI.get(partialCovar);
 
           myagg.count += nB;
-          myagg.xavg = (xavgA * nA + xavgB * nB) / myagg.count;
-          myagg.yavg = (yavgA * nA + yavgB * nB) / myagg.count;
-          myagg.xvar += xvarB + (xavgA - xavgB) * (xavgA - xavgB) * myagg.count;
-          myagg.yvar += yvarB + (yavgA - yavgB) * (yavgA - yavgB) * myagg.count;
-          myagg.covar +=
-              covarB + (xavgA - xavgB) * (yavgA - yavgB) * ((double) (nA * nB) / myagg.count);
+          double n = myagg.count;
+          double nn = nA * nB / n;
+          double dX = xavgA - xavgB;
+          double dY = yavgA - yavgB;
+          myagg.xavg = xavgA * nA / n + xavgB * nB / n;
+          myagg.yavg = yavgA * nA / n + yavgB * nB / n;
+          myagg.xvar  += xvarB  + dX * dX * nn;
+          myagg.yvar  += yvarB  + dY * dY * nn;
+          myagg.covar += covarB + dX * dY * nn;
         }
       }
     }

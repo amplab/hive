@@ -1,0 +1,55 @@
+PREHOOK: query: DROP TABLE corr_tab
+PREHOOK: type: DROPTABLE
+POSTHOOK: query: DROP TABLE corr_tab
+POSTHOOK: type: DROPTABLE
+PREHOOK: query: CREATE TABLE corr_tab (a INT, b INT)
+CLUSTERED BY (b) INTO 16 BUCKETS
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE
+PREHOOK: type: CREATETABLE
+POSTHOOK: query: CREATE TABLE corr_tab (a INT, b INT)
+CLUSTERED BY (b) INTO 16 BUCKETS
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+STORED AS TEXTFILE
+POSTHOOK: type: CREATETABLE
+POSTHOOK: Output: default@corr_tab
+PREHOOK: query: LOAD DATA LOCAL INPATH '../data/files/corr_tab.txt' OVERWRITE
+INTO TABLE corr_tab
+PREHOOK: type: LOAD
+PREHOOK: Output: default@corr_tab
+POSTHOOK: query: LOAD DATA LOCAL INPATH '../data/files/corr_tab.txt' OVERWRITE
+INTO TABLE corr_tab
+POSTHOOK: type: LOAD
+POSTHOOK: Output: default@corr_tab
+PREHOOK: query: SELECT round(corr(a, a), 8), b FROM corr_tab GROUP BY b ORDER BY b
+PREHOOK: type: QUERY
+PREHOOK: Input: default@corr_tab
+#### A masked pattern was here ####
+POSTHOOK: query: SELECT round(corr(a, a), 8), b FROM corr_tab GROUP BY b ORDER BY b
+POSTHOOK: type: QUERY
+POSTHOOK: Input: default@corr_tab
+#### A masked pattern was here ####
+1.0	0
+1.0	1
+1.0	2
+1.0	3
+1.0	4
+1.0	5
+1.0	6
+1.0	7
+1.0	8
+1.0	9
+1.0	10
+1.0	11
+1.0	12
+1.0	13
+1.0	14
+1.0	15
+PREHOOK: query: DROP TABLE corr_tab
+PREHOOK: type: DROPTABLE
+PREHOOK: Input: default@corr_tab
+PREHOOK: Output: default@corr_tab
+POSTHOOK: query: DROP TABLE corr_tab
+POSTHOOK: type: DROPTABLE
+POSTHOOK: Input: default@corr_tab
+POSTHOOK: Output: default@corr_tab
