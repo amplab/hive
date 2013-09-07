@@ -27,7 +27,7 @@
     <include file="${ivy.conf.dir}/common-configurations.xml"/>
   </configurations>
   <dependencies>
-    <dependency org="org.apache.hive" name="hive-service" rev="${version}"
+    <dependency org="edu.berkeley.cs.shark" name="hive-service" rev="${version}"
                 conf="compile->default" />
     <dependency org="org.apache.thrift" name="libthrift" rev="${libthrift.version}"
                 transitive="false"/>

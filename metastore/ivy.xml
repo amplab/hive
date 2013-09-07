@@ -26,9 +26,9 @@
     <include file="${ivy.conf.dir}/common-configurations.xml"/>
   </configurations>
   <dependencies>
-    <dependency org="org.apache.hive" name="hive-serde" rev="${version}"
+    <dependency org="edu.berkeley.cs.shark" name="hive-serde" rev="${version}"
                 conf="compile->default" />
-    <dependency org="org.apache.hive" name="hive-shims" rev="${version}"
+    <dependency org="edu.berkeley.cs.shark" name="hive-shims" rev="${version}"
                 conf="compile->default" transitive="false" />
     <dependency org="org.antlr" name="antlr" rev="${antlr.version}"/>
     <dependency org="org.antlr" name="antlr-runtime" rev="${antlr-runtime.version}"/>

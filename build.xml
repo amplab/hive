@@ -350,7 +350,7 @@
           <arg value="-DrepositoryId=${mvn.publish.repo}" />
           <arg value="-Dfile=${build.dir.hive}/ql/hive-exec-test-${version}.jar" />
           <arg value="-DpomFile=${build.dir.hive}/ql/hive-exec-test-${version}.pom" />
-          <arg value="-DgroupId=org.apache.hive" />
+          <arg value="-DgroupId=edu.berkeley.cs.shark" />
           <arg value="-DartifactId=hive-exec-test" />
           <arg value="-Dpackaging=jar" />
         </artifact:mvn>
@@ -360,7 +360,7 @@
           <arg value="-DrepositoryId=${mvn.publish.repo}" />
           <arg value="-Dfile=${build.dir.hive}/ql/hive-exec-test-${version}-sources.jar" />
           <arg value="-DgeneratePom=false" />
-          <arg value="-DgroupId=org.apache.hive" />
+          <arg value="-DgroupId=edu.berkeley.cs.shark" />
           <arg value="-DartifactId=hive-exec-test" />
           <arg value="-Dversion=${version}" />
           <arg value="-Dpackaging=java-source" />
@@ -1242,7 +1242,7 @@
           <echo message="Deploying to ${mvn.publish.repo}, ${mvn.publish.repoUrl}"/>
           <artifact:mvn>
             <arg value="org.apache.maven.plugins:maven-deploy-plugin:2.6:deploy-file" />
-            <arg value="-DgroupId=org.apache.hive" />
+            <arg value="-DgroupId=edu.berkeley.cs.shark" />
             <arg value="-DartifactId=hive-${hive.project}" />
             <arg value="-Dversion=${version}" />
             <arg value="-Durl=${mvn.publish.repoUrl}" />
