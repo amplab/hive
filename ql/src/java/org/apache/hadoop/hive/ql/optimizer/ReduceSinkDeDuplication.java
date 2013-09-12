@@ -365,6 +365,7 @@ public class ReduceSinkDeDuplication implements Transform{
       if (result[0] > 0) {
         ArrayList<ExprNodeDesc> childKCs = cRS.getConf().getKeyCols();
         pRS.getConf().setKeyCols(ExprNodeDescUtils.backtrack(childKCs, cRS, pRS));
+        pRS.getConf().setNumDistributionKeys(cRS.getConf().getNumDistributionKeys());
       }
       if (result[1] > 0) {
         ArrayList<ExprNodeDesc> childPCs = cRS.getConf().getPartitionCols();
