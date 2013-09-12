@@ -492,8 +492,8 @@ public final class Utilities {
     e.setPersistenceDelegate(GroupByDesc.Mode.class, new EnumDelegate());
     e.setPersistenceDelegate(Operator.ProgressCounter.class, new EnumDelegate());
 
-    e.setPersistenceDelegate(org.datanucleus.sco.backed.Map.class, new MapDelegate());
-    e.setPersistenceDelegate(org.datanucleus.sco.backed.List.class, new ListDelegate());
+    e.setPersistenceDelegate(org.datanucleus.store.types.backed.Map.class, new MapDelegate());
+    e.setPersistenceDelegate(org.datanucleus.store.types.backed.List.class, new ListDelegate());
 
     e.writeObject(plan);
     e.close();
