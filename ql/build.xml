@@ -288,10 +288,11 @@
       <arg value="install:install-file" />
       <arg value="-Dfile=${build.dir}/hive-exec-test-${version}.jar" />
       <arg value="-DpomFile=${build.dir}/hive-exec-test-${version}.pom" />
-      <arg value="-DgroupId=org.apache.hive" />
-      <arg value="-DartifactId=hive-exec-test" />
+      <arg value="-DgroupId=edu.berkeley.cs.shark" />
+      <arg value="-DartifactId=hive-exec" />
       <arg value="-Dversion=${version}" />
       <arg value="-Dpackaging=jar" />
+      <arg value="-Dclassifier=test" />
     </exec>
   </target>
 
