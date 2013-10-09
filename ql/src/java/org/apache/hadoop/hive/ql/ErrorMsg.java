@@ -70,8 +70,6 @@ public enum ErrorMsg {
   INVALID_JOIN_CONDITION_3(10019, "OR not supported in JOIN currently"),
   INVALID_TRANSFORM(10020, "TRANSFORM with other SELECT columns not supported"),
   DUPLICATE_GROUPBY_KEY(10021, "Repeated key in GROUP BY"),
-  UNSUPPORTED_MULTIPLE_DISTINCTS(10022, "DISTINCT on different columns not supported" +
-      " with skew in data"),
   NO_SUBQUERY_ALIAS(10023, "No alias for subquery"),
   NO_INSERT_INSUBQUERY(10024, "Cannot insert in a subquery. Inserting to table "),
   NON_KEY_EXPR_IN_GROUPBY(10025, "Expression not in GROUP BY key"),

@@ -22,14 +22,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
-        <groupId>org.apache.hcatalog</groupId>
+        <groupId>edu.berkeley.cs.shark</groupId>
         <artifactId>hcatalog</artifactId>
-        <version>0.11.0</version>
+        <version>0.11.0-shark-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.apache.hcatalog</groupId>
     <artifactId>hcatalog-server-extensions</artifactId>
     <packaging>jar</packaging>
     <name>server-extensions</name>
@@ -61,7 +60,7 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.apache.hcatalog</groupId>
+            <groupId>edu.berkeley.cs.shark</groupId>
             <artifactId>hcatalog-core</artifactId>
             <version>${hcatalog.version}</version>
             <scope>compile</scope>

@@ -81,6 +81,9 @@ public class ReduceSinkOperator extends TerminalOperator<ReduceSinkDesc>
   transient protected int numDistributionKeys;
   transient protected int numDistinctExprs;
   transient String inputAlias;  // input alias of this RS for join (used for PPD)
+  transient protected boolean optimizeSkew;
+
+
 
   public void setInputAlias(String inputAlias) {
     this.inputAlias = inputAlias;
@@ -103,6 +106,7 @@ public class ReduceSinkOperator extends TerminalOperator<ReduceSinkDesc>
       numDistributionKeys = conf.getNumDistributionKeys();
       distinctColIndices = conf.getDistinctColumnIndices();
       numDistinctExprs = distinctColIndices.size();
+      optimizeSkew = conf.isOptimizeSkew();
 
       valueEval = new ExprNodeEvaluator[conf.getValueCols().size()];
       i = 0;
@@ -146,6 +150,7 @@ public class ReduceSinkOperator extends TerminalOperator<ReduceSinkDesc>
   transient StructObjectInspector keyObjectInspector;
   transient StructObjectInspector valueObjectInspector;
   transient ObjectInspector[] partitionObjectInspectors;
+  transient ObjectInspector[] keyColObjectInspectors;
 
   transient Object[][] cachedKeys;
   transient Object[] cachedValues;
@@ -209,32 +214,12 @@ public class ReduceSinkOperator extends TerminalOperator<ReduceSinkDesc>
         valueObjectInspector = initEvaluatorsAndReturnStruct(valueEval, conf
             .getOutputValueColumnNames(), rowInspector);
         partitionObjectInspectors = initEvaluators(partitionEval, rowInspector);
+        keyColObjectInspectors = initEvaluators(keyEval, rowInspector);
         int numKeys = numDistinctExprs > 0 ? numDistinctExprs : 1;
         int keyLen = numDistinctExprs > 0 ? numDistributionKeys + 1 :
           numDistributionKeys;
         cachedKeys = new Object[numKeys][keyLen];
         cachedValues = new Object[valueEval.length];
-      }
-
-      // Evaluate the HashCode
-      int keyHashCode = 0;
-      if (partitionEval.length == 0) {
-        // If no partition cols, just distribute the data uniformly to provide
-        // better
-        // load balance. If the requirement is to have a single reducer, we
-        // should set
-        // the number of reducers to 1.
-        // Use a constant seed to make the code deterministic.
-        if (random == null) {
-          random = new Random(12345);
-        }
-        keyHashCode = random.nextInt();
-      } else {
-        for (int i = 0; i < partitionEval.length; i++) {
-          Object o = partitionEval[i].evaluate(row);
-          keyHashCode = keyHashCode * 31
-              + ObjectInspectorUtils.hashCode(o, partitionObjectInspectors[i]);
-        }
       }
 
       // Evaluate the value
@@ -250,21 +235,50 @@ public class ReduceSinkOperator extends TerminalOperator<ReduceSinkDesc>
         distributionKeys[i] = keyEval[i].evaluate(row);
       }
 
+
+      // Evaluate the HashCode
+      int currentHashCode = 0;
+      int keyHashCode[] = new int[numDistinctExprs > 0 ? numDistinctExprs : 1];
+      if (partitionEval.length == 0 && numDistinctExprs == 0) {
+        // If no partition cols, just distribute the data uniformly to provide
+        // better
+        // load balance. If the requirement is to have a single reducer, we
+        // should set
+        // the number of reducers to 1.
+        // Use a constant seed to make the code deterministic.
+        if (random == null) {
+          random = new Random(12345);
+        }
+        currentHashCode = random.nextInt();
+      } else {
+        for (int i = 0; i < partitionEval.length; i++) {
+          Object o = partitionEval[i].evaluate(row);
+          currentHashCode = currentHashCode * 31
+              + ObjectInspectorUtils.hashCode(o, partitionObjectInspectors[i]);
+        }
+      }
+
       if (numDistinctExprs > 0) {
         // with distinct key(s)
         for (int i = 0; i < numDistinctExprs; i++) {
           System.arraycopy(distributionKeys, 0, cachedKeys[i], 0, numDistributionKeys);
           Object[] distinctParameters =
             new Object[distinctColIndices.get(i).size()];
+          keyHashCode[i] = currentHashCode;
           for (int j = 0; j < distinctParameters.length; j++) {
-            distinctParameters[j] =
-              keyEval[distinctColIndices.get(i).get(j)].evaluate(row);
+            distinctParameters[j] = keyEval[distinctColIndices.get(i).get(j)].evaluate(row);
+            if (optimizeSkew) {
+              keyHashCode[i] = keyHashCode[i] * 31
+                + ObjectInspectorUtils.hashCode(distinctParameters[j],
+                    keyColObjectInspectors[distinctColIndices.get(i).get(j)]);
+            }
           }
           cachedKeys[i][numDistributionKeys] =
               new StandardUnion((byte)i, distinctParameters);
         }
       } else {
         // no distinct key
+        keyHashCode[0] = currentHashCode;
         System.arraycopy(distributionKeys, 0, cachedKeys[0], 0, numDistributionKeys);
       }
       // Serialize the keys and append the tag
@@ -293,7 +307,7 @@ public class ReduceSinkOperator extends TerminalOperator<ReduceSinkDesc>
             keyWritable.get()[keyLength] = tagByte[0];
           }
         }
-        keyWritable.setHashCode(keyHashCode);
+        keyWritable.setHashCode(keyHashCode[i]);
         if (out != null) {
           out.collect(keyWritable, value);
           // Since this is a terminal operator, update counters explicitly -

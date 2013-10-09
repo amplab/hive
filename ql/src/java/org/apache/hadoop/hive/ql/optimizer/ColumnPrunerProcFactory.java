@@ -308,6 +308,7 @@ public final class ColumnPrunerProcFactory {
       cppCtx.getPrunedColLists().put((Operator<? extends OperatorDesc>) nd,
           cols);
       ArrayList<Integer> needed_columns = new ArrayList<Integer>();
+      List<String> neededColumnNames = new ArrayList<String>();
       RowResolver inputRR = cppCtx.getOpToParseCtxMap().get(scanOp).getRowResolver();
       TableScanDesc desc = scanOp.getConf();
       List<VirtualColumn> virtualCols = desc.getVirtualCols();
@@ -338,12 +339,15 @@ public final class ColumnPrunerProcFactory {
         }
         int position = inputRR.getPosition(cols.get(i));
         if (position >=0) {
+          // get the needed columns by id and name
           needed_columns.add(position);
+          neededColumnNames.add(cols.get(i));
         }
       }
 
       desc.setVirtualCols(newVirtualCols);
       scanOp.setNeededColumnIDs(needed_columns);
+      scanOp.setNeededColumns(neededColumnNames);
       return null;
     }
   }

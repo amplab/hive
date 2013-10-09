@@ -43,9 +43,6 @@ STAGE PLANS:
                           expr: _col0
                           type: string
                     sort order: +
-                    Map-reduce partition columns:
-                          expr: _col0
-                          type: string
                     tag: -1
                     value expressions:
                           expr: _col1
@@ -236,9 +233,6 @@ STAGE PLANS:
                         expr: value
                         type: string
                   sort order: +
-                  Map-reduce partition columns:
-                        expr: value
-                        type: string
                   tag: -1
                   value expressions:
                         expr: 1

@@ -60,6 +60,11 @@ public class ReduceSinkDesc extends AbstractOperatorDesc {
   private int numDistributionKeys;
 
   /**
+   * Whether optimized for skew data
+   */
+  private boolean optimizeSkew;
+
+  /**
    * The partition columns (CLUSTER BY or DISTRIBUTE BY in Hive language).
    * Partition columns decide the reducer that the current row goes to.
    * Partition columns are not passed to reducer.
@@ -78,7 +83,8 @@ public class ReduceSinkDesc extends AbstractOperatorDesc {
       List<List<Integer>> distinctColumnIndices,
       java.util.ArrayList<java.lang.String> outputValueColumnNames, int tag,
       java.util.ArrayList<ExprNodeDesc> partitionCols, int numReducers,
-      final TableDesc keySerializeInfo, final TableDesc valueSerializeInfo) {
+      final TableDesc keySerializeInfo, final TableDesc valueSerializeInfo,
+      boolean optimizeSkew) {
     this.keyCols = keyCols;
     this.numDistributionKeys = numDistributionKeys;
     this.valueCols = valueCols;
@@ -90,6 +96,7 @@ public class ReduceSinkDesc extends AbstractOperatorDesc {
     this.keySerializeInfo = keySerializeInfo;
     this.valueSerializeInfo = valueSerializeInfo;
     this.distinctColumnIndices = distinctColumnIndices;
+    this.optimizeSkew = optimizeSkew;
   }
 
   @Override
@@ -234,5 +241,13 @@ public class ReduceSinkDesc extends AbstractOperatorDesc {
   public void setDistinctColumnIndices(
       List<List<Integer>> distinctColumnIndices) {
     this.distinctColumnIndices = distinctColumnIndices;
+  }
+
+  public boolean isOptimizeSkew() {
+    return optimizeSkew;
+  }
+
+  public void setOptimizeSkew(boolean optimizeSkew) {
+    this.optimizeSkew = optimizeSkew;
   }
 }

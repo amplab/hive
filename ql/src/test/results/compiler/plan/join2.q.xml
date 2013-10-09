@@ -867,6 +867,16 @@
               </void> 
              </object> 
             </void> 
+            <void property="neededColumns"> 
+             <object class="java.util.ArrayList"> 
+              <void method="add"> 
+               <string>key</string> 
+              </void> 
+              <void method="add"> 
+               <string>value</string> 
+              </void> 
+             </object> 
+            </void> 
             <void property="operatorId"> 
              <string>TS_1</string> 
             </void> 
@@ -2234,6 +2244,13 @@
           </void> 
          </object> 
         </void> 
+        <void property="neededColumns"> 
+         <object class="java.util.ArrayList"> 
+          <void method="add"> 
+           <string>key</string> 
+          </void> 
+         </object> 
+        </void> 
         <void property="operatorId"> 
          <string>TS_0</string> 
         </void> 
@@ -2526,6 +2543,13 @@
          <object class="java.util.ArrayList"> 
           <void method="add"> 
            <int>0</int> 
+          </void> 
+         </object> 
+        </void> 
+        <void property="neededColumns"> 
+         <object class="java.util.ArrayList"> 
+          <void method="add"> 
+           <string>key</string> 
           </void> 
          </object> 
         </void> 

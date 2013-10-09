@@ -16,7 +16,7 @@
 -->
 
 <ivy-module version="2.0">
-  <info organisation="org.apache.hive" module="${ant.project.name}" revision="${version}">
+  <info organisation="edu.berkeley.cs.shark" module="${ant.project.name}" revision="${version}">
     <license name="Apache 2.0"/>
     <ivyauthor name="Apache Hive Team" url="http://hive.apache.org"/>
     <description>Apache Hive</description>

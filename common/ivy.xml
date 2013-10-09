@@ -37,7 +37,7 @@
     <dependency org="org.apache.avro" name="avro" rev="${avro.version}"
                 conf="hadoop23.compile->default" transitive="false" />
 
-    <dependency org="org.apache.hive" name="hive-shims" rev="${version}"
+    <dependency org="edu.berkeley.cs.shark" name="hive-shims" rev="${version}"
                 conf="compile->default" transitive="false" />
     <dependency org="commons-cli" name="commons-cli" rev="${commons-cli.version}"/>
     <dependency org="org.apache.commons" name="commons-compress" rev="${commons-compress.version}"/>

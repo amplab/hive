@@ -26,7 +26,7 @@
     <include file="${ivy.conf.dir}/common-configurations.xml"/>
   </configurations>  
   <dependencies>
-    <dependency org="org.apache.hive" name="hive-cli" rev="${version}"
+    <dependency org="edu.berkeley.cs.shark" name="hive-cli" rev="${version}"
                 conf="compile->default" />
     <dependency org="org.mortbay.jetty" name="jetty" rev="${jetty.version}" />
 

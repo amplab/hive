@@ -18,7 +18,6 @@
 
 package org.apache.hive.service.cli.session;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.hive.conf.HiveConf;
@@ -37,6 +35,7 @@ import org.apache.hadoop.hive.metastore.api.MetaException;
 import org.apache.hadoop.hive.ql.history.HiveHistory;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hive.common.util.HiveVersionInfo;
+import org.apache.hive.service.auth.TUGIContainingProcessor;
 import org.apache.hive.service.cli.FetchOrientation;
 import org.apache.hive.service.cli.GetInfoType;
 import org.apache.hive.service.cli.GetInfoValue;
@@ -311,6 +310,8 @@ public class HiveSessionImpl implements HiveSession {
         hiveHist.closeStream();
       }
       sessionState.close();
+      // close all FileSystem for all UGIs created during this Connection live time
+      TUGIContainingProcessor.closeAllFsForUGIs();
       release();
     } catch (IOException ioe) {
       release();
@@ -345,6 +346,8 @@ public class HiveSessionImpl implements HiveSession {
     try {
       operationManager.closeOperation(opHandle);
       opHandleSet.remove(opHandle);
+      // close all FileSystem for all UGIs created during this Statement live time
+      TUGIContainingProcessor.closeAllFsForUGIs();
     } finally {
       release();
     }

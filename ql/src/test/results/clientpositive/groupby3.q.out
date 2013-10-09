@@ -55,9 +55,6 @@ STAGE PLANS:
                       expr: substr(value, 5)
                       type: string
                 sort order: +
-                Map-reduce partition columns:
-                      expr: substr(value, 5)
-                      type: string
                 tag: -1
       Reduce Operator Tree:
         Group By Operator
