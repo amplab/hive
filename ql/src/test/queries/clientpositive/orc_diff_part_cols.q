@@ -14,6 +14,6 @@ INSERT OVERWRITE TABLE test_orc PARTITION (part = '1') SELECT key FROM src LIMIT
 
 ALTER TABLE test_orc ADD COLUMNS (cnt INT);
 
-INSERT OVERWRITE TABLE test_orc PARTITION (part = '2') SELECT key, count(*) FROM src GROUP BY key LIMIT 5;
+INSERT OVERWRITE TABLE test_orc PARTITION (part = '2') SELECT key, count(*) FROM src GROUP BY key ORDER BY key LIMIT 5;
 
 SELECT * FROM test_orc; 
