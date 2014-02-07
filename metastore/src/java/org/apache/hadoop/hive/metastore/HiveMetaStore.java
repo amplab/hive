@@ -163,7 +163,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
 
     // Thread local configuration is needed as many threads could make changes
     // to the conf using the connection hook
-    private final ThreadLocal<Configuration> threadLocalConf =
+    private static final ThreadLocal<Configuration> threadLocalConf =
       new ThreadLocal<Configuration>() {
         @Override
         protected synchronized Configuration initialValue() {
@@ -317,6 +317,11 @@ public class HiveMetaStore extends ThriftHiveMetastore {
         threadLocalConf.set(conf);
       }
       return conf;
+    }
+
+    public static void cleanThreadLocal() {
+      threadLocalConf.remove();
+      LOG.debug("removed current Configuration instance from thread-local var");
     }
 
     /**

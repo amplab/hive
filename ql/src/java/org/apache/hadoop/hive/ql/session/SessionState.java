@@ -748,4 +748,10 @@ public class SessionState {
   public void setLocalMapRedErrors(Map<String, List<String>> localMapRedErrors) {
     this.localMapRedErrors = localMapRedErrors;
   }
+
+  public static void cleanThreadLocal() {
+    tss.remove();
+    Log LOG = LogFactory.getLog(SessionState.class.getName());
+    LOG.debug("removed current SessionState instance from thread-local var");
+  }
 }
