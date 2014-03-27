@@ -59,6 +59,7 @@ public class GetTablesOperation extends MetadataOperation {
 	  typeMap = new HashMap<String, String>();
 	  
 	  typeMap.put("MANAGED_TABLE", "TABLE");
+	  typeMap.put("EXTERNAL_TABLE", "TABLE");
 	  typeMap.put("MANAGED_VIEW", "VIEW");
   }
 
@@ -91,11 +92,11 @@ public class GetTablesOperation extends MetadataOperation {
               dbName,
               table.getDbName(),
               table.getTableName(),
-              typeMap.get(table.getTableType()),
+              typeMap.containsKey(table.getTableType())? typeMap.get(table.getTableType()) : table.getTableType(),
               table.getParameters().get("comment")
               };
 
-          if (tableTypes.isEmpty() || tableTypes.contains( typeMap.get(table.getTableType()) )) {
+          if (tableTypes.isEmpty() || tableTypes.contains( (typeMap.containsKey(table.getTableType())? typeMap.get(table.getTableType()) : table.getTableType()) )) {
             rowSet.addRow(RESULT_SET_SCHEMA, rowData);
           }
         }
