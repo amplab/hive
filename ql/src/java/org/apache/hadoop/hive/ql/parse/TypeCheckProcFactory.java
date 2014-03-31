@@ -956,6 +956,27 @@ public final class TypeCheckProcFactory {
             .getIsVirtualCol());
       }
 
+        if (expr.getType() == HiveParser.DOT
+                && expr.getChild(0).getType() == HiveParser.StringLiteral
+                && nodeOutputs[0] != null) {
+
+            RowResolver input = ctx.getInputRR();
+            String tableAlias = BaseSemanticAnalyzer.unescapeIdentifier(expr
+                    .getChild(0).getText());
+            // NOTE: tableAlias must be a valid non-ambiguous table alias,
+            // because we've checked that in TOK_TABLE_OR_COL's process method.
+            ColumnInfo colInfo = input.get(tableAlias,
+                    ((ExprNodeConstantDesc) nodeOutputs[1]).getValue().toString());
+
+            if (colInfo == null) {
+                ctx.setError(ErrorMsg.INVALID_COLUMN.getMsg(expr.getChild(1)), expr);
+                return null;
+            }
+            return new ExprNodeColumnDesc(colInfo.getType(), colInfo
+                    .getInternalName(), colInfo.getTabAlias(), colInfo
+                    .getIsVirtualCol());
+        }
+
       // Return nulls for conversion operators
       if (conversionFunctionTextHashMap.keySet().contains(expr.getType())
           || specialFunctionTextHashMap.keySet().contains(expr.getType())

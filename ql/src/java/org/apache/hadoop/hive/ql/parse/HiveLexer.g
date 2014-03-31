@@ -295,6 +295,7 @@ BITWISEOR : '|';
 BITWISEXOR : '^';
 QUESTION : '?';
 DOLLAR : '$';
+DOUBLEQUOTE : '\"'
 
 // LITERALS
 fragment

@@ -401,9 +401,15 @@ public abstract class BaseSemanticAnalyzer {
     if (val == null) {
       return null;
     }
+	
     if (val.charAt(0) == '`' && val.charAt(val.length() - 1) == '`') {
       val = val.substring(1, val.length() - 1);
     }
+
+    if (val.charAt(0) == '"' && val.charAt(val.length() - 1) == '"') {
+      val = val.substring(1, val.length() - 1);
+    }
+	
     return val;
   }
 
