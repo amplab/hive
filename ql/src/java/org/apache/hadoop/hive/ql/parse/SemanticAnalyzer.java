@@ -2619,9 +2619,11 @@ public class SemanticAnalyzer extends BaseSemanticAnalyzer {
         pos = genColListRegex(unescapeIdentifier(expr.getChild(0).getText()),
             null, expr, col_list, inputRR, pos, out_rwsch, qb.getAliases(), subQuery);
       } else if (expr.getType() == HiveParser.DOT
-          && expr.getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL
+          && ((expr.getChild(0).getType() == HiveParser.TOK_TABLE_OR_COL
           && inputRR.hasTableAlias(unescapeIdentifier(expr.getChild(0)
-              .getChild(0).getText().toLowerCase())) && !hasAsClause
+              .getChild(0).getText().toLowerCase()))) || (expr.getChild(0).getType() == HiveParser.StringLiteral
+          && inputRR.hasTableAlias(unescapeIdentifier(expr.getChild(0).getText().toLowerCase()))) )
+          && !hasAsClause
           && !inputRR.getIsExprResolver()
           && isRegex(unescapeIdentifier(expr.getChild(1).getText()))) {
         // In case the expression is TABLE.COL (col can be regex).

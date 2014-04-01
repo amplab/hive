@@ -140,7 +140,7 @@ public class GetColumnsOperation extends MetadataOperation {
               continue;
             }
             Object[] rowData = new Object[] {
-                null,  // TABLE_CAT
+                table.getDbName(),  // TABLE_CAT
                 table.getDbName(), // TABLE_SCHEM
                 table.getTableName(), // TABLE_NAME
                 column.getName(), // COLUMN_NAME

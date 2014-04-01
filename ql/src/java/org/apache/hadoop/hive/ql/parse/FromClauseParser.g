@@ -172,8 +172,8 @@ tableSample
 tableSource
 @init { gParent.msgs.push("table source"); }
 @after { gParent.msgs.pop(); }
-    : tabname=tableName (ts=tableSample)? (alias=identifier)?
-    -> ^(TOK_TABREF $tabname $ts? $alias?)
+    : tabname=tableName (props=tableProperties)? (ts=tableSample)? (KW_AS? alias=Identifier)?
+    -> ^(TOK_TABREF $tabname $props? $ts? $alias?)
     ;
 
 tableName
@@ -182,6 +182,15 @@ tableName
     :
     db=identifier DOT tab=identifier
     -> ^(TOK_TABNAME $db $tab)
+    |
+    db=identifier DOT tab2=StringLiteral
+    -> ^(TOK_TABNAME $db Identifier[$tab2.text.substring(1,$tab2.text.length()-1)])
+    |
+    db2=StringLiteral DOT tab=identifier
+    -> ^(TOK_TABNAME Identifier[$db2.text.substring(1,$db2.text.length()-1)] $tab)
+    |
+    db2=StringLiteral DOT tab2=StringLiteral
+    -> ^(TOK_TABNAME Identifier[$db2.text.substring(1,$db2.text.length()-1)] Identifier[$tab2.text.substring(1,$tab2.text.length()-1)])
     |
     tab=identifier
     -> ^(TOK_TABNAME $tab)

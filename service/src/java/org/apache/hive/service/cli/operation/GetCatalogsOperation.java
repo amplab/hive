@@ -18,6 +18,8 @@
 
 package org.apache.hive.service.cli.operation;
 
+import java.util.List;
+
 import org.apache.hive.service.cli.FetchOrientation;
 import org.apache.hive.service.cli.HiveSQLException;
 import org.apache.hive.service.cli.OperationState;
@@ -46,6 +48,20 @@ public class GetCatalogsOperation extends MetadataOperation {
   @Override
   public void run() throws HiveSQLException {
     setState(OperationState.RUNNING);
+	try{
+		List<String> databaseNames = getParentSession().getMetaStoreClient().getAllDatabases();
+	
+		if(databaseNames != null && databaseNames.size() > 0){
+			for(String databaseName : databaseNames){
+				Object rowData[] = new Object[] {databaseName};
+				rowSet.addRow(RESULT_SET_SCHEMA, rowData);
+			}
+		}
+	} catch (Exception e) {
+      setState(OperationState.ERROR);
+      throw new HiveSQLException(e);
+    }
+	
     setState(OperationState.FINISHED);
   }
 

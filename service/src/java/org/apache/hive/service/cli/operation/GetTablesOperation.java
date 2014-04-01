@@ -20,6 +20,8 @@ package org.apache.hive.service.cli.operation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Table;
@@ -50,6 +52,16 @@ public class GetTablesOperation extends MetadataOperation {
   .addStringColumn("TABLE_NAME", "Table name.")
   .addStringColumn("TABLE_TYPE", "The table type, e.g. \"TABLE\", \"VIEW\", etc.")
   .addStringColumn("REMARKS", "Comments about the table.");
+  
+  private static Map<String, String> typeMap;
+  
+  static{
+	  typeMap = new HashMap<String, String>();
+	  
+	  typeMap.put("MANAGED_TABLE", "TABLE");
+	  typeMap.put("EXTERNAL_TABLE", "TABLE");
+	  typeMap.put("MANAGED_VIEW", "VIEW");
+  }
 
   protected GetTablesOperation(HiveSession parentSession,
       String catalogName, String schemaName, String tableName,
@@ -77,13 +89,14 @@ public class GetTablesOperation extends MetadataOperation {
         List<String> tableNames = metastoreClient.getTables(dbName, tablePattern);
         for (Table table : metastoreClient.getTableObjectsByName(dbName, tableNames)) {
           Object[] rowData = new Object[] {
-              DEFAULT_HIVE_CATALOG,
+              dbName,
               table.getDbName(),
               table.getTableName(),
-              table.getTableType(),
+              typeMap.containsKey(table.getTableType())? typeMap.get(table.getTableType()) : table.getTableType(),
               table.getParameters().get("comment")
               };
-          if (tableTypes.isEmpty() || tableTypes.contains(table.getTableType())) {
+
+          if (tableTypes.isEmpty() || tableTypes.contains( (typeMap.containsKey(table.getTableType())? typeMap.get(table.getTableType()) : table.getTableType()) )) {
             rowSet.addRow(RESULT_SET_SCHEMA, rowData);
           }
         }
