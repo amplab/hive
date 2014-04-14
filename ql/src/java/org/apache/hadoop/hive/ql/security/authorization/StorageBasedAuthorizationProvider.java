@@ -175,6 +175,10 @@ public class StorageBasedAuthorizationProvider extends HiveAuthorizationProvider
       return FsAction.READ;
     case SHOW_DATABASE:
       return FsAction.READ;
+    case SHOW_TABLE:
+      return FsAction.READ;
+    case SHOW_PARTITION:
+      return FsAction.READ;
     case UNKNOWN:
     default:
       throw new AuthorizationException("Unknown privilege");

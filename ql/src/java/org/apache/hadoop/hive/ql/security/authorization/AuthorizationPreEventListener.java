@@ -38,6 +38,8 @@ import org.apache.hadoop.hive.metastore.events.PreDropDatabaseEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
+import org.apache.hadoop.hive.metastore.events.PreShowPartitionEvent;
+import org.apache.hadoop.hive.metastore.events.PreShowTableEvent;
 import org.apache.hadoop.hive.ql.metadata.AuthorizationException;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
 import org.apache.hadoop.hive.ql.metadata.HiveUtils;
@@ -81,28 +83,34 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
 
     switch (context.getEventType()) {
     case CREATE_TABLE:
-      authorizeCreateTable((PreCreateTableEvent)context);
+      authorizeCreateTable((PreCreateTableEvent) context);
       break;
     case DROP_TABLE:
-      authorizeDropTable((PreDropTableEvent)context);
+      authorizeDropTable((PreDropTableEvent) context);
       break;
     case ALTER_TABLE:
-      authorizeAlterTable((PreAlterTableEvent)context);
+      authorizeAlterTable((PreAlterTableEvent) context);
       break;
     case ADD_PARTITION:
-      authorizeAddPartition((PreAddPartitionEvent)context);
+      authorizeAddPartition((PreAddPartitionEvent) context);
       break;
     case DROP_PARTITION:
-      authorizeDropPartition((PreDropPartitionEvent)context);
+      authorizeDropPartition((PreDropPartitionEvent) context);
       break;
     case ALTER_PARTITION:
-      authorizeAlterPartition((PreAlterPartitionEvent)context);
+      authorizeAlterPartition((PreAlterPartitionEvent) context);
       break;
     case CREATE_DATABASE:
-      authorizeCreateDatabase((PreCreateDatabaseEvent)context);
+      authorizeCreateDatabase((PreCreateDatabaseEvent) context);
       break;
     case DROP_DATABASE:
-      authorizeDropDatabase((PreDropDatabaseEvent)context);
+      authorizeDropDatabase((PreDropDatabaseEvent) context);
+      break;
+    case SHOW_TABLE:
+      authorizeShowTable((PreShowTableEvent) context);
+      break;
+    case SHOW_PARTITION:
+      authorizeShowPartition((PreShowPartitionEvent) context);
       break;
     case LOAD_PARTITION_DONE:
       // noop for now
@@ -111,6 +119,35 @@ public class AuthorizationPreEventListener extends MetaStorePreEventListener {
       break;
     }
 
+  }
+
+  private void authorizeShowTable(PreShowTableEvent context)
+      throws InvalidOperationException, MetaException {
+    try {
+      authorizer.authorize(getTableFromApiTable(context.getTable()),
+          HiveOperation.SHOWTABLES.getInputRequiredPrivileges(),
+          HiveOperation.SHOWTABLES.getOutputRequiredPrivileges());
+    } catch (AuthorizationException e) {
+      throw invalidOperationException(e);
+    } catch (HiveException e) {
+      throw metaException(e);
+    }
+  }
+
+  private void authorizeShowPartition(PreShowPartitionEvent context)
+      throws InvalidOperationException, MetaException {
+    try {
+      org.apache.hadoop.hive.metastore.api.Partition mapiPart = context.getPartition();
+      authorizer.authorize(getPartitionFromApiPartition(mapiPart, context),
+          HiveOperation.SHOWPARTITIONS.getInputRequiredPrivileges(),
+          HiveOperation.SHOWPARTITIONS.getOutputRequiredPrivileges());
+    } catch (AuthorizationException e) {
+      throw invalidOperationException(e);
+    } catch (NoSuchObjectException e) {
+      throw invalidOperationException(e);
+    } catch (HiveException e) {
+      throw metaException(e);
+    }
   }
 
   private void authorizeCreateDatabase(PreCreateDatabaseEvent context)

@@ -37,6 +37,8 @@ public class Privilege {
     LOCK,
     SELECT,
     SHOW_DATABASE,
+    SHOW_TABLE,
+    SHOW_PARTITION,
     UNKNOWN
   }
 
@@ -59,6 +61,7 @@ public class Privilege {
       return PrivilegeType.LOCK;
     case HiveParser.TOK_PRIV_SELECT:
       return PrivilegeType.SELECT;
+    // TODO(harvey): Add HiveParser tokens for tables, partitions.
     case HiveParser.TOK_PRIV_SHOW_DATABASE:
       return PrivilegeType.SHOW_DATABASE;
     default:
@@ -86,6 +89,10 @@ public class Privilege {
       return PrivilegeType.SELECT;
     } else if (canonicalizedName.equals("show_database")) {
       return PrivilegeType.SHOW_DATABASE;
+    } else if (canonicalizedName.equals("show_table")) {
+      return PrivilegeType.SHOW_TABLE;
+    } else if (canonicalizedName.equals("show_partition")) {
+      return PrivilegeType.SHOW_PARTITION;
     }
 
     return PrivilegeType.UNKNOWN;
@@ -151,6 +158,10 @@ public class Privilege {
       return "Select";
     case SHOW_DATABASE:
       return "Show_Database";
+    case SHOW_TABLE:
+      return "Show_Table";
+    case SHOW_PARTITION:
+      return "Show_Partition";
     default:
       return "Unknown";
     }
@@ -184,6 +195,12 @@ public class Privilege {
       PrivilegeScope.ALLSCOPE);
 
   public static Privilege SHOW_DATABASE = new Privilege(PrivilegeType.SHOW_DATABASE,
+      EnumSet.of(PrivilegeScope.USER_LEVEL_SCOPE));
+
+  public static Privilege SHOW_TABLE = new Privilege(PrivilegeType.SHOW_TABLE,
+      EnumSet.of(PrivilegeScope.USER_LEVEL_SCOPE));
+
+  public static Privilege SHOW_PARTITION = new Privilege(PrivilegeType.SHOW_PARTITION,
       EnumSet.of(PrivilegeScope.USER_LEVEL_SCOPE));
 
 }

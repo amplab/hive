@@ -14,3 +14,5 @@ common/src/gen
 *.ipr
 *.iws
 *.asc
+*.DS_Store
+

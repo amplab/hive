@@ -1,5 +1,6 @@
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
+
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
  * regarding copyright ownership.  The ASF licenses this file
@@ -19,49 +20,21 @@
 package org.apache.hadoop.hive.metastore.events;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
+import org.apache.hadoop.hive.metastore.api.Table;
 
+public class PreShowTableEvent extends PreEventContext {
 
-/**
- * Base class for all the events which are defined for metastore.
- */
+  private final Table table;
 
-public abstract class PreEventContext {
-
-  public static enum PreEventType {
-    CREATE_TABLE,
-    DROP_TABLE,
-    ALTER_TABLE,
-    ADD_PARTITION,
-    DROP_PARTITION,
-    ALTER_PARTITION,
-    CREATE_DATABASE,
-    DROP_DATABASE,
-    LOAD_PARTITION_DONE,
-    SHOW_DATABASE,
-    SHOW_PARTITION,
-    SHOW_TABLE
-  }
-
-  private final PreEventType eventType;
-  private final HMSHandler handler;
-
-  public PreEventContext(PreEventType eventType, HMSHandler  handler) {
-    this.eventType = eventType;
-    this.handler = handler;
+  public PreShowTableEvent (Table table, HMSHandler handler) {
+    super (PreEventType.SHOW_TABLE, handler);
+    this.table = table;
   }
 
   /**
-   * @return the event type
+   * @return Table being read.
    */
-  public PreEventType getEventType() {
-    return eventType;
+  public Table getTable() {
+    return table;
   }
-
-  /**
-   * @return the handler
-   */
-  public HMSHandler getHandler() {
-    return handler;
-  }
-
 }

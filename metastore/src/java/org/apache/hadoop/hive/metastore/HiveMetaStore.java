@@ -107,6 +107,8 @@ import org.apache.hadoop.hive.metastore.events.PreDropPartitionEvent;
 import org.apache.hadoop.hive.metastore.events.PreDropTableEvent;
 import org.apache.hadoop.hive.metastore.events.PreEventContext;
 import org.apache.hadoop.hive.metastore.events.PreLoadPartitionDoneEvent;
+import org.apache.hadoop.hive.metastore.events.PreShowPartitionEvent;
+import org.apache.hadoop.hive.metastore.events.PreShowTableEvent;
 import org.apache.hadoop.hive.metastore.model.MDBPrivilege;
 import org.apache.hadoop.hive.metastore.model.MGlobalPrivilege;
 import org.apache.hadoop.hive.metastore.model.MPartitionColumnPrivilege;
@@ -1369,6 +1371,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           throw new NoSuchObjectException(dbname + "." + name
               + " table not found");
         }
+        firePreEvent(new PreShowTableEvent(t, this));
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -1417,6 +1420,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           throw new InvalidOperationException(dbname + " cannot find null tables");
         }
         tables = getMS().getTableObjectsByName(dbname, names);
+        filterTableObjects(tables);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -1436,6 +1440,27 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return tables;
     }
 
+    private List<Table> filterTableObjects(List<Table> tables) {
+      for (Table table : tables) {
+        try {
+          firePreEvent(new PreShowTableEvent(table, this));
+        } catch (Exception e) {
+          tables.remove(table);
+        }
+      }
+      return tables;
+    }
+
+    private List<String> filterTableNames(String dbName, List<String> tables)
+        throws MetaException, InvalidOperationException, NoSuchObjectException, UnknownDBException {
+      List<Table> tableObjects = get_table_objects_by_name(dbName, tables);
+      tables.clear();
+      for (Table tableObject : tableObjects) {
+        tables.add(tableObject.getTableName());
+      }
+      return tables;
+    }
+
     @Override
     public List<String> get_table_names_by_filter(
         final String dbName, final String filter, final short maxTables)
@@ -1451,6 +1476,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
           throw new InvalidOperationException(filter + " cannot apply null filter");
         }
         tables = getMS().listTableNamesByFilter(dbName, filter, maxTables);
+        filterTableNames(dbName, tables);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -1983,6 +2009,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = getMS().getPartition(db_name, tbl_name, part_vals);
+        firePreEvent(new PreShowPartitionEvent(ret, this));
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -2013,6 +2040,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         ret = getMS().getPartitionWithAuth(db_name, tbl_name, part_vals,
             user_name, group_names);
+        firePreEvent(new PreShowPartitionEvent(ret, this));
       } catch (InvalidObjectException e) {
         ex = e;
         throw new NoSuchObjectException(e.getMessage());
@@ -2035,6 +2063,31 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       return ret;
     }
 
+    private List<Partition> filterPartitionObjects(List<Partition> partitions) {
+      for (Partition partition : partitions) {
+        try {
+          firePreEvent(new PreShowPartitionEvent(partition, this));
+        } catch (MetaException e) {
+          partitions.remove(partition);
+        }
+      }
+      return partitions;
+    }
+
+    private List<String> filterPartitionNames(
+        String dbName,
+        String tableName,
+        List<String> partitions) {
+      for (String partition : partitions) {
+        try {
+          Partition partitionObject = get_partition_by_name(dbName, tableName, partition);
+        } catch (Exception e) {
+          partitions.remove(partition);
+        }
+      }
+      return partitions;
+    }
+
     public List<Partition> get_partitions(final String db_name, final String tbl_name,
         final short max_parts) throws NoSuchObjectException, MetaException {
       startTableFunction("get_partitions", db_name, tbl_name);
@@ -2043,6 +2096,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = getMS().getPartitions(db_name, tbl_name, max_parts);
+        filterPartitionObjects(ret);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -2073,6 +2127,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         ret = getMS().getPartitionsWithAuth(dbName, tblName, maxParts,
             userName, groupNames);
+        filterPartitionObjects(ret);
       } catch (InvalidObjectException e) {
         ex = e;
         throw new NoSuchObjectException(e.getMessage());
@@ -2104,6 +2159,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = getMS().listPartitionNames(db_name, tbl_name, max_parts);
+        filterPartitionNames(db_name, tbl_name, ret);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -2380,6 +2436,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = getMS().getTables(dbname, pattern);
+        filterTableNames(dbname, ret);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -2402,6 +2459,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = getMS().getAllTables(dbname);
+        filterTableNames(dbname, ret);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -2631,6 +2689,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = get_partition_by_name_core(getMS(), db_name, tbl_name, part_name);
+        firePreEvent(new PreShowPartitionEvent(ret, this));
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -2761,6 +2820,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         ret = get_partitions_ps_with_auth(db_name, tbl_name, part_vals,
             max_parts, null, null);
+        filterPartitionObjects(ret);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -2793,6 +2853,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       try {
         ret = getMS().listPartitionsPsWithAuth(db_name, tbl_name, part_vals, max_parts,
             userName, groupNames);
+        filterPartitionObjects(ret);
       } catch (InvalidObjectException e) {
         ex = e;
         throw new MetaException(e.getMessage());
@@ -2824,6 +2885,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = getMS().listPartitionNamesPs(db_name, tbl_name, part_vals, max_parts);
+        filterPartitionNames(db_name, tbl_name, ret);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -3341,6 +3403,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = getMS().getPartitionsByFilter(dbName, tblName, filter, maxParts);
+        filterPartitionObjects(ret);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {
@@ -3371,6 +3434,7 @@ public class HiveMetaStore extends ThriftHiveMetastore {
       Exception ex = null;
       try {
         ret = getMS().getPartitionsByNames(dbName, tblName, partNames);
+        filterPartitionObjects(ret);
       } catch (Exception e) {
         ex = e;
         if (e instanceof MetaException) {

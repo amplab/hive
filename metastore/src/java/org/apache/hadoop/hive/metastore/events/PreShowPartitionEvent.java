@@ -19,49 +19,21 @@
 package org.apache.hadoop.hive.metastore.events;
 
 import org.apache.hadoop.hive.metastore.HiveMetaStore.HMSHandler;
+import org.apache.hadoop.hive.metastore.api.Partition;
 
+public class PreShowPartitionEvent extends PreEventContext {
 
-/**
- * Base class for all the events which are defined for metastore.
- */
+  private final Partition partition;
 
-public abstract class PreEventContext {
-
-  public static enum PreEventType {
-    CREATE_TABLE,
-    DROP_TABLE,
-    ALTER_TABLE,
-    ADD_PARTITION,
-    DROP_PARTITION,
-    ALTER_PARTITION,
-    CREATE_DATABASE,
-    DROP_DATABASE,
-    LOAD_PARTITION_DONE,
-    SHOW_DATABASE,
-    SHOW_PARTITION,
-    SHOW_TABLE
-  }
-
-  private final PreEventType eventType;
-  private final HMSHandler handler;
-
-  public PreEventContext(PreEventType eventType, HMSHandler  handler) {
-    this.eventType = eventType;
-    this.handler = handler;
+  public PreShowPartitionEvent (Partition partition, HMSHandler handler) {
+    super(PreEventType.SHOW_PARTITION, handler);
+    this.partition = partition;
   }
 
   /**
-   * @return the event type
+   * @return Partition being read.
    */
-  public PreEventType getEventType() {
-    return eventType;
+  public Partition getPartition() {
+    return partition;
   }
-
-  /**
-   * @return the handler
-   */
-  public HMSHandler getHandler() {
-    return handler;
-  }
-
 }
