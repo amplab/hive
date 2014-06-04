@@ -20,6 +20,7 @@ package org.apache.hadoop.hive.hbase;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -30,6 +31,9 @@ import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.filter.CompareFilter;
+import org.apache.hadoop.hbase.filter.FilterList;
+import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapred.TableMapReduceUtil;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormatBase;
@@ -38,12 +42,17 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Writables;
 import org.apache.hadoop.hive.hbase.HBaseSerDe.ColumnMapping;
 import org.apache.hadoop.hive.ql.exec.ExprNodeConstantEvaluator;
+import org.apache.hadoop.hive.ql.exec.FunctionRegistry;
 import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.index.IndexPredicateAnalyzer;
 import org.apache.hadoop.hive.ql.index.IndexSearchCondition;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.plan.ExprNodeColumnDesc;
+import org.apache.hadoop.hive.ql.plan.ExprNodeConstantDesc;
 import org.apache.hadoop.hive.ql.plan.ExprNodeDesc;
+import org.apache.hadoop.hive.ql.plan.ExprNodeGenericFuncDesc;
 import org.apache.hadoop.hive.ql.plan.TableScanDesc;
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDFBridge;
 import org.apache.hadoop.hive.serde.serdeConstants;
 import org.apache.hadoop.hive.serde2.ByteStream;
 import org.apache.hadoop.hive.serde2.ColumnProjectionUtils;
@@ -256,6 +265,7 @@ public class HiveHBaseTableInputFormat extends TableInputFormatBase
     }
     ExprNodeDesc filterExpr =
       Utilities.deserializeExpression(filterExprSerialized, jobConf);
+    ExprNodeDesc nonKeyFilterExpr = null;
 
     String colName = jobConf.get(serdeConstants.LIST_COLUMNS).split(",")[iKey];
     String colType = jobConf.get(serdeConstants.LIST_COLUMN_TYPES).split(",")[iKey];
@@ -266,18 +276,11 @@ public class HiveHBaseTableInputFormat extends TableInputFormatBase
     ExprNodeDesc residualPredicate =
       analyzer.analyzePredicate(filterExpr, searchConditions);
 
-    // There should be no residual since we already negotiated
-    // that earlier in HBaseStorageHandler.decomposePredicate.
+    // If there is a residual predicate after processing key column,
+    // it belongs to non-key columns, since we bridged them with AND
+    // in StorageHandler.
     if (residualPredicate != null) {
-      throw new RuntimeException(
-        "Unexpected residual predicate " + residualPredicate.getExprString());
-    }
-
-    // There should be exactly one predicate since we already
-    // negotiated that also.
-    if (searchConditions.size() < 1 || searchConditions.size() > 2) {
-      throw new RuntimeException(
-        "Either one or two search conditions expected in push down");
+      nonKeyFilterExpr = residualPredicate;
     }
 
     // Convert the search condition into a restriction on the HBase scan
@@ -328,7 +331,146 @@ public class HiveHBaseTableInputFormat extends TableInputFormatBase
     }
     scan.setStartRow(startRow);
     scan.setStopRow(stopRow);
+
+    if(nonKeyFilterExpr != null){
+      String hbaseColumnsMapping = jobConf.get(HBaseSerDe.HBASE_COLUMNS_MAPPING);
+      List<ColumnMapping> columnsMapping = null;
+      if (hbaseColumnsMapping == null) {
+        throw new IOException("hbase.columns.mapping required for HBase Table.");
+      }
+      try {
+        columnsMapping = HBaseSerDe.parseColumnsMapping(hbaseColumnsMapping);
+      } catch (SerDeException e) {
+        throw new IOException(e);
+      }
+      FilterList nonKeyFilters = buildNonKeyFilters(nonKeyFilterExpr,jobConf);
+      if(nonKeyFilters != null){
+        scan.setFilter(nonKeyFilters);
+      }
+    }
     return tableSplit;
+  }
+
+  public FilterList buildNonKeyFilters(ExprNodeDesc pred, JobConf jobConf) throws IOException{
+
+    if(pred == null) {
+      return null;
+    }
+
+    if(pred instanceof ExprNodeGenericFuncDesc){
+      // AND or OR types
+      FilterList filters=null, childFilters=null;
+
+      assert(pred.getChildren().size()==2);
+      ExprNodeDesc child1 = pred.getChildren().get(0);
+      ExprNodeDesc child2 = pred.getChildren().get(1);
+
+      if(FunctionRegistry.isOpOr(pred) || FunctionRegistry.isOpAnd(pred)) {
+        if(FunctionRegistry.isOpOr(pred)){
+          filters = new FilterList(FilterList.Operator.MUST_PASS_ONE);
+        }
+        else if (FunctionRegistry.isOpAnd(pred)){
+          filters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
+        }
+
+        if(child1 instanceof ExprNodeGenericFuncDesc) {
+          filters.addFilter(buildNonKeyFilters(child1,jobConf));
+        }
+        if(child2 instanceof ExprNodeGenericFuncDesc) {
+          filters.addFilter(buildNonKeyFilters(child2,jobConf));
+        }
+        return filters;
+      }
+
+      else{
+
+        int colPos;
+        byte[] colFamily,colQualifier,constantVal;
+        ExprNodeConstantDesc constDesc = null;
+        ExprNodeColumnDesc colDesc = null;
+        ExprNodeConstantEvaluator eval;
+        Object writable;
+        IndexPredicateAnalyzer ip = new IndexPredicateAnalyzer();
+        ExprNodeGenericFuncDesc funcDesc = (ExprNodeGenericFuncDesc) pred;
+        String comparisonOp;
+        CompareFilter.CompareOp operator = null;
+
+        List<String> columns = Arrays.asList(jobConf.get(org.apache.hadoop.hive.serde.Constants.LIST_COLUMNS).split(","));
+        String hbaseColumnsMapping = jobConf.get(HBaseSerDe.HBASE_COLUMNS_MAPPING);
+        List<ColumnMapping> columnsMapping = null;
+        if (hbaseColumnsMapping == null) {
+          throw new IOException("hbase.columns.mapping required for HBase Table.");
+        }
+        try {
+          columnsMapping = HBaseSerDe.parseColumnsMapping(hbaseColumnsMapping);
+        } catch (SerDeException e) {
+          throw new IOException(e);
+        }
+
+
+        if (funcDesc.getGenericUDF() instanceof GenericUDFBridge) {
+          GenericUDFBridge func = (GenericUDFBridge) funcDesc.getGenericUDF();
+          comparisonOp = func.getUdfName();
+        } else {
+          comparisonOp = funcDesc.getGenericUDF().getClass().getName();
+        }
+
+        if ((child1 instanceof ExprNodeColumnDesc)
+            && (child2 instanceof ExprNodeConstantDesc)){
+          colDesc = (ExprNodeColumnDesc)child1;
+          constDesc = (ExprNodeConstantDesc)child2;
+        }
+        else if ((child2 instanceof ExprNodeColumnDesc)
+            && (child1 instanceof ExprNodeConstantDesc)){
+          colDesc = (ExprNodeColumnDesc)child2;
+          constDesc = (ExprNodeConstantDesc)child1;
+        }
+        colPos = columns.indexOf(colDesc.getColumn());
+        colFamily = columnsMapping.get(colPos).familyNameBytes;
+        colQualifier = columnsMapping.get(colPos).qualifierNameBytes;
+        eval= new ExprNodeConstantEvaluator(constDesc);
+        PrimitiveObjectInspector objInspector;
+        try{
+          objInspector = (PrimitiveObjectInspector)eval.initialize(null);
+          writable = eval.evaluate(null);
+        } catch (ClassCastException cce) {
+          throw new IOException("Currently only primitve types are supported. Found: " +
+              constDesc.getTypeString());
+        } catch (HiveException e) {
+          throw new IOException(e);
+        }
+
+
+
+        constantVal = getConstantVal(writable, objInspector, getStorageFormatOfKey(columnsMapping.get(colPos).mappingSpec,jobConf.get(HBaseSerDe.HBASE_TABLE_DEFAULT_STORAGE_TYPE, "string")));
+
+        if("org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPEqual".equals(comparisonOp)){
+          operator = CompareFilter.CompareOp.EQUAL;
+
+        } else if ("org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPLessThan".equals(comparisonOp)){
+          operator = CompareFilter.CompareOp.LESS;
+
+        } else if ("org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPEqualOrGreaterThan"
+            .equals(comparisonOp)) {
+          operator = CompareFilter.CompareOp.GREATER_OR_EQUAL;
+
+        } else if ("org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPGreaterThan"
+            .equals(comparisonOp)){
+          operator = CompareFilter.CompareOp.GREATER;
+
+        } else if ("org.apache.hadoop.hive.ql.udf.generic.GenericUDFOPEqualOrLessThan"
+            .equals(comparisonOp)){
+          operator = CompareFilter.CompareOp.LESS_OR_EQUAL;
+        } else {
+          throw new IOException(comparisonOp + " is not a supported comparison operator");
+        }
+        LOG.debug("Adding filter:"+Bytes.toString(colFamily)+":"+Bytes.toString(colQualifier)+":"+operator+":"+Bytes.toString(constantVal));
+        return new FilterList(new SingleColumnValueFilter(colFamily,colQualifier,operator,constantVal));
+
+      }
+    }
+    assert(false);
+    return null;
   }
 
     private byte[] getConstantVal(Object writable, PrimitiveObjectInspector poi,
